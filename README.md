@@ -6,7 +6,7 @@ DockWeb is a versatile Docker image designed to run multiple money-making web ex
 ---
 
 ## **Supported Apps**
- - [Grass](https://app.getgrass.io/register/?referralCode=LxGryHB0y3gmNml)
+ - [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
  - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) (Soon)
  - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
 

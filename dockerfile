@@ -1,7 +1,6 @@
 FROM debian:stable-slim
 
 # Set environment variables
-ENV EXTENSION_ID=ilehaonighjijnmpnagapkhpcdbhclfg
 ENV GIT_USERNAME=warren-bank
 ENV GIT_REPO=chrome-extension-downloader
 
@@ -24,8 +23,6 @@ RUN apt update && \
 RUN git clone "https://github.com/${GIT_USERNAME}/${GIT_REPO}.git" && \
     chmod +x ./${GIT_REPO}/bin/*
 
-# Download the extension selected
-RUN ./${GIT_REPO}/bin/crxdl $EXTENSION_ID
 
 # Install python requirements
 COPY main.py .

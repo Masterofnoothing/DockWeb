@@ -17,6 +17,10 @@ def setup_logging():
 def runGrass(driver,email,password,extension_id):
      # Navigate to a webpage
         logging.info('Navigating to the website...')
+        time.sleep(5)
+        window_handles = driver.window_handles
+
+        driver.switch_to.window(window_handles[0])
         driver.get("https://app.getgrass.io/")
         time.sleep(random.randint(3,7))
 
@@ -49,6 +53,9 @@ def runNodepay():
 
 def runGradientNode(driver,email,password):
     logging.info("Visiting app.gradient.network...................")
+    window_handles = driver.window_handles
+
+    driver.switch_to.window(window_handles[0])
     driver.get("https://app.gradient.network/")
 
     time.sleep(random.randint(3,7))
@@ -96,7 +103,7 @@ def download_extension(extension_id, repo_path="./chrome-extension-downloader/bi
     """
     try:
         print(f"Starting download for extension ID: {extension_id}")
-        result = subprocess.run([repo_path, extension_id], check=True, text=True, capture_output=True,shell=True)
+        result = subprocess.run([repo_path, extension_id], check=True, text=True, capture_output=True)
         print("Download successful!")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
@@ -115,16 +122,21 @@ def run():
     gradient_email = os.getenv('GRADIENT_EMAIL')
     gradient_password = os.getenv('GRADIENT_PASS')
 
+
+    chrome_options = Options()
     # Check if credentials are provided
     if  grass_email and  grass_password:
         logging.error('Installing Grass')
         download_extension(extensionIds["grass"])
+        id = extensionIds["grass"]
+        chrome_options.add_extension(f"./{id}.crx")
     if  gradient_email and  gradient_password:
         logging.error('Installing Gradient')
         download_extension(extensionIds['gradient'])
+        id = extensionIds["gradient"]
+        chrome_options.add_extension(f"./{id}.crx")
 
-    chrome_options = Options()
-    chrome_options.add_extension()
+
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--headless=new')
     chrome_options.add_argument('--disable-dev-shm-usage')
