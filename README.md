@@ -35,7 +35,7 @@ only enter the environment variables for the app you will run
 2. **Run the container:**  
    Provide credentials for one or more supported extensions as environment variables. For example:  
    ```bash
-   docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> mrcolorrain/dockweb
+   docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> carbon2029/dockweb
    ```
 
 2. **Run the container with memory restrictions**  
