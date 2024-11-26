@@ -14,6 +14,24 @@ def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+# function to handle cookie banner: If a cookie banner is present press the button containing the accept text
+def handle_cookie_banner(driver):
+    """
+    Handle the cookie banner by clicking the "Accept" button if it's present.
+
+    Args:
+        driver (webdriver): The WebDriver instance.
+    """
+    try:
+        cookie_banner = driver.find_element(By.XPATH, "//button[contains(text(), 'ACCEPT')]")
+        if cookie_banner:
+            logging.info('Cookie banner found. Accepting cookies...')
+            cookie_banner.click()
+            time.sleep(random.randint(3, 11))
+            logging.info('Cookies accepted.')
+    except Exception:
+        pass
+
 def runGrass(driver,email,password,extension_id):
      # Navigate to a webpage
         logging.info('Navigating to the website...')
@@ -23,12 +41,18 @@ def runGrass(driver,email,password,extension_id):
         driver.switch_to.window(window_handles[0])
         driver.get("https://app.getgrass.io/")
         time.sleep(random.randint(3,7))
+        handle_cookie_banner(driver)
 
         logging.info('Entering credentials...')
         username = driver.find_element(By.NAME,"user")
         username.send_keys(email)
         passwd = driver.find_element(By.NAME,"password")
         passwd.send_keys(password)
+        
+        logging.info('Clicking the login button...')
+        button = driver.find_element(By.XPATH, "//button")
+        button.click()
+        logging.info('Waiting response...')
         
         logging.info('Clicking the login button...')
         button = driver.find_element(By.XPATH, "//button")
@@ -45,6 +69,7 @@ def runGrass(driver,email,password,extension_id):
         button.click()
 
         logging.info('Logged in successfully.')
+        handle_cookie_banner(driver)
         logging.info('Earning...')
 
 
@@ -126,12 +151,12 @@ def run():
     chrome_options = Options()
     # Check if credentials are provided
     if  grass_email and  grass_password:
-        logging.error('Installing Grass')
+        logging.info('Installing Grass')
         download_extension(extensionIds["grass"])
         id = extensionIds["grass"]
         chrome_options.add_extension(f"./{id}.crx")
     if  gradient_email and  gradient_password:
-        logging.error('Installing Gradient')
+        logging.info('Installing Gradient')
         download_extension(extensionIds['gradient'])
         id = extensionIds["gradient"]
         chrome_options.add_extension(f"./{id}.crx")
