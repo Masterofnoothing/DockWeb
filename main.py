@@ -14,6 +14,16 @@ def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+def clearMemory(driver):
+    "Closes unused tabs to save memory"
+    window_handles = driver.window_handles
+
+    driver.switch_to.window(window_handles[0])
+
+    for i in range(len(window_handles)-1):
+        driver.switch_to.window(window_handles[i])
+
+
 # function to handle cookie banner: If a cookie banner is present press the button containing the accept text
 def handle_cookie_banner(driver):
     """
@@ -48,11 +58,7 @@ def runGrass(driver,email,password,extension_id):
         username.send_keys(email)
         passwd = driver.find_element(By.NAME,"password")
         passwd.send_keys(password)
-        
-        logging.info('Clicking the login button...')
-        button = driver.find_element(By.XPATH, "//button")
-        button.click()
-        logging.info('Waiting response...')
+               
         
         logging.info('Clicking the login button...')
         button = driver.find_element(By.XPATH, "//button")
@@ -72,6 +78,8 @@ def runGrass(driver,email,password,extension_id):
         handle_cookie_banner(driver)
         logging.info('Earning...')
 
+        time.sleep(random.randint(1,30))
+
 
 def runNodepay():
     pass
@@ -83,14 +91,14 @@ def runGradientNode(driver,email,password):
     driver.switch_to.window(window_handles[0])
     driver.get("https://app.gradient.network/")
 
-    time.sleep(random.randint(3,7))
+    time.sleep(random.randint(6,13))
 
     logging.info('Entering credentials...')
     email_input =driver.find_element(By.XPATH, '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')
     email_input.send_keys(email)
 
 
-    time.sleep(random.randint(3,7))
+    time.sleep(random.randint(6,13))
     password_input = driver.find_element(By.XPATH, '//input[@placeholder="Enter Password"]')
     password_input.send_keys(password)
 
@@ -99,7 +107,7 @@ def runGradientNode(driver,email,password):
     button.click()
 
 
-    time.sleep(random.randint(3,7))
+    time.sleep(random.randint(6,13))
 
     window_handles = driver.window_handles
 
@@ -108,7 +116,7 @@ def runGradientNode(driver,email,password):
 
     logging.info('Clicking the extension button...')
     driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
-    time.sleep(random.randint(3,7))
+    time.sleep(random.randint(6,13))
     button = driver.find_element(By.XPATH,"//button[@class='w-full h-[48px] text-center flex-row-center rounded-[125px] text-[16px] font-normal leading-[100%] bg-black text-white mt-[32px] z-20 Helveticae']")
     button.click()
 
@@ -173,13 +181,15 @@ def run():
 
 
     try:
-        if  grass_email and  grass_password:
-            runGrass(driver,gradient_email,grass_password,extensionIds['grass'])
-            
-
         if  gradient_email and  gradient_password:
             runGradientNode(driver,gradient_email,gradient_password)
+        clearMemory(driver)
+        if  grass_email and  grass_password:
+            runGrass(driver,grass_email,grass_password,extensionIds['grass'])
+            
+        clearMemory(driver)
 
+        
     except Exception as e:
         logging.error(f'An error occurred: {e}')
         driver.quit()

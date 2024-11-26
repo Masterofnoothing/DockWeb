@@ -38,6 +38,8 @@ only enter the environment variables for the app you will run
    docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> mrcolorrain/dockweb
    ```
 
+2. **Run the container with memory restrictions**  
+
 3. **Monitor the container:**  
    To check if the container is running:  
    ```bash
