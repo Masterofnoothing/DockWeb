@@ -17,20 +17,13 @@ More will be added soon ;)
 Run the Docker container with your credentials for supported web extensions as environment variables. Replace `<your_email>` and `<your_password>` with your Grass account details (or details of other extensions):  
 
 ```bash
-docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> mrcolorrain/dockweb
+docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> -e GRADIENT_EMAIL=<your_email> -e GRADIENT_PASS=<your_password> carbon2029/dockweb
 ```
 
+only enter the environment variables for the app you will run 
 ---
 
-## **Features**
 
-- **Multi-Extension Support:** Run multiple web extensions in one container.  
-- **Easy Setup:** Minimal configuration required.  
-- **Resource Efficiency:** Consolidates extensions to save on system resources.  
-- **Scalable:** Add support for new extensions as they emerge.  
-- **Cross-Platform Compatibility:** Works seamlessly on any system that supports Docker.  
-
----
 
 ## **Usage**
 
@@ -59,6 +52,16 @@ docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> mrcolorra
 
 ---
 
+## **Features**
+
+- **Multi-Extension Support:** Run multiple web extensions in one container.  
+- **Easy Setup:** Minimal configuration required.  
+- **Resource Efficiency:** Consolidates extensions to save on system resources.  
+- **Scalable:** Add support for new extensions as they emerge.  
+- **Cross-Platform Compatibility:** Works seamlessly on any system that supports Docker.  
+
+---
+
 ## **FAQ**
  
 
@@ -80,7 +83,6 @@ As of 11/25/2024 only grass had made their airdrop other are claiming to pay soo
 
 - Further reduce resource usage.  
 - Expand support for new web extensions.  
-- Add a configuration wizard for easier setup.  
 - Implement logs for debugging and monitoring.  
 
 ---
@@ -95,7 +97,10 @@ You are free to redistribute and/or modify it under the license terms.
 ---
 
 ## **Disclaimer**
-
-This software is provided "as is," without warranties of any kind. The author disclaims all liability for any damages arising from its use, including but not limited to direct, indirect, incidental, or consequential damages.  
+This is an unofficial build and not affiliated or officially endorsed by Grass (getgrass) or any other apps. This repository (project) and its assets are provided "as is" without warranty of any kind. The author makes no warranties, express or implied, that this project and its assets are free of errors, defects, or suitable for any particular purpose. The author shall not be liable for any damages suffered by any user of this project, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this project, its assets or its documentation, even if the author has been advised of the possibility of such damages. 
 
 ---
+
+## **Note**
+Special thanks to [MRColorR](https://github.com/MRColorR) for helping out with this project.
+Also if you use any referral link it helps me create more free projects thank you it means a lot <3
