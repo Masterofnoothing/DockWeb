@@ -24,6 +24,7 @@ def clearMemory(driver):
         driver.switch_to.window(window_handles[i])
 
 
+
 # function to handle cookie banner: If a cookie banner is present press the button containing the accept text
 def handle_cookie_banner(driver):
     """
