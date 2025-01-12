@@ -1,8 +1,10 @@
 FROM debian:stable-slim
 
 # Set environment variables
-ENV GIT_USERNAME=warren-bank
-ENV GIT_REPO=chrome-extension-downloader
+ENV GIT_USERNAME=sryze
+ENV GIT_REPO=crx-dl
+ENV ISDOCKER=true
+
 
 # Install necessary packages then clean up to reduce image size
 RUN apt update && \
@@ -21,7 +23,7 @@ RUN apt update && \
 
 # Download crx dowloader from git
 RUN git clone "https://github.com/${GIT_USERNAME}/${GIT_REPO}.git" && \
-    chmod +x ./${GIT_REPO}/bin/*
+    chmod +x ./${GIT_REPO}/crx-dl.py
 
 
 # Install python requirements

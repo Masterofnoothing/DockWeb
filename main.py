@@ -10,6 +10,7 @@ import subprocess
 
 
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp"}
+docker = os.getenv("ISDOCKER")
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -118,13 +119,18 @@ def runGradientNode(driver,email,password):
     logging.info('Clicking the extension button...')
     driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
     time.sleep(random.randint(6,13))
+
+    button = driver.find_element(By.XPATH,"/html/body/div[3]/div/div[2]/div/div[1]/div/div/div/button")
+    button.click()
+    time.sleep(random.randint(6,13))
+
     button = driver.find_element(By.XPATH,"//button[@class='w-full h-[48px] text-center flex-row-center rounded-[125px] text-[16px] font-normal leading-[100%] bg-black text-white mt-[32px] z-20 Helveticae']")
     button.click()
 
     logging.info('Logged in successfully.')
     logging.info('Earning...')
 
-def download_extension(extension_id, repo_path="./chrome-extension-downloader/bin/crxdl"):
+def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
     """
     Downloads a Chrome extension using the crxdl script.
     
@@ -135,50 +141,87 @@ def download_extension(extension_id, repo_path="./chrome-extension-downloader/bi
     Returns:
         None
     """
-    try:
-        print(f"Starting download for extension ID: {extension_id}")
-        result = subprocess.run([repo_path, extension_id], check=True, text=True, capture_output=True)
-        print("Download successful!")
-        print(result.stdout)
-    except subprocess.CalledProcessError as e:
-        print("An error occurred while downloading the extension:")
-        print(e.stderr)
+    if docker == 'true':
+        try:
+            print(f"Starting download for extension ID: {extension_id}")
+            result = subprocess.run(["python3",repo_path, extension_id], check=True, text=True, capture_output=True)
+            print("Download successful!")
+            print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            print("An error occurred while downloading the extension:")
+            print(e.stderr)
+    else:
+        url = f"https://chromewebstore.google.com/detail/{extension_id}"
+        print(f"Opening: {url}")
+
+        # Open the extension's page
+        driver.get(url)
+
+        # Wait for the page to load
+        time.sleep(5)
+
+        #Since I am lazy to automate this add the extension manually XOXO
+        input("")
+        return
+
 
 
 def run():
     setup_logging()
     logging.info('Starting the script...')
 
-    # Read variables from the OS env
-    grass_email = os.getenv('GRASS_USER')
-    grass_password = os.getenv('GRASS_PASS')
-
-    gradient_email = os.getenv('GRADIENT_EMAIL')
-    gradient_password = os.getenv('GRADIENT_PASS')
-
-
+    
     chrome_options = Options()
-    # Check if credentials are provided
-    if  grass_email and  grass_password:
-        logging.info('Installing Grass')
-        download_extension(extensionIds["grass"])
-        id = extensionIds["grass"]
-        chrome_options.add_extension(f"./{id}.crx")
-    if  gradient_email and  gradient_password:
-        logging.info('Installing Gradient')
-        download_extension(extensionIds['gradient'])
-        id = extensionIds["gradient"]
-        chrome_options.add_extension(f"./{id}.crx")
+
+    # Read variables from the OS env
+    if docker == 'true':
+        grass_email = os.getenv('GRASS_USER')
+        grass_password = os.getenv('GRASS_PASS')
+
+        gradient_email = os.getenv('GRADIENT_EMAIL')
+        gradient_password = os.getenv('GRADIENT_PASS')
+
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--headless=new')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+
+        # Check if credentials are provided
+        if  grass_email and  grass_password:
+            logging.info('Installing Grass')
+            download_extension(extensionIds["grass"])
+            id = extensionIds["grass"]
+            chrome_options.add_extension(f"./{id}.crx")
+        if  gradient_email and  gradient_password:
+            logging.info('Installing Gradient')
+            download_extension(extensionIds['gradient'])
+            id = extensionIds["gradient"]
+            chrome_options.add_extension(f"./{id}.crx")
+
+        driver = webdriver.Chrome(options=chrome_options)
+
+    else:
+        grass_email =  input('Enter GRASS_USER: ')
+        grass_password =  input('Enter GRASS_PASS: ')
+
+        gradient_email =  input('Enter GRADIENT_EMAIL: ')
+        gradient_password = input('Enter GRADIENT_PASS: ')
+        driver = webdriver.Chrome(options=chrome_options)
 
 
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--headless=new')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+        if  grass_email and  grass_password:
+            logging.info('Installing Grass')
+            download_extension(extensionIds["grass"],driver)
+        if  gradient_email and  gradient_password:
+            logging.info('Installing Gradient')
+            download_extension(extensionIds['gradient'],driver)
 
 
-    # Initialize the WebDriver
-    driver = webdriver.Chrome(options=chrome_options)
+
+
+
+
+
 
 
     try:
@@ -193,6 +236,7 @@ def run():
         
     except Exception as e:
         logging.error(f'An error occurred: {e}')
+        time.sleep(1500)
         driver.quit()
 
     while True:
