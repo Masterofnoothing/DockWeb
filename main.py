@@ -16,13 +16,19 @@ def setup_logging():
 
 
 def clearMemory(driver):
-    "Closes unused tabs to save memory"
+    """Closes unused tabs to save memory."""
     window_handles = driver.window_handles
 
+    # Keep the first tab open
     driver.switch_to.window(window_handles[0])
 
-    for i in range(len(window_handles)-1):
-        driver.switch_to.window(window_handles[i])
+    # Close all other tabs
+    for handle in window_handles[1:]:
+        driver.switch_to.window(handle)
+        driver.close()
+
+    # Switch back to the first tab to ensure driver is on a valid window
+    driver.switch_to.window(window_handles[0])
 
 
 
@@ -232,6 +238,8 @@ def run():
             runGrass(driver,grass_email,grass_password,extensionIds['grass'])
             
         clearMemory(driver)
+
+        driver.get("https://example.com")
 
         
     except Exception as e:
