@@ -167,7 +167,7 @@ def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py")
         time.sleep(5)
 
         #Since I am lazy to automate this add the extension manually XOXO
-        input("")
+        input("Add the extension and press enter")
         return
 
 
@@ -178,6 +178,10 @@ def run():
 
     
     chrome_options = Options()
+    chrome_options.add_argument("--disable-blink-features=CSSAnimations,CSSTransitions")
+
+    prefs = {"profile.managed_default_content_settings.images":2}
+    chrome_options.add_experimental_option("prefs", prefs)
 
     # Read variables from the OS env
     if docker == 'true':
@@ -239,12 +243,15 @@ def run():
             
         clearMemory(driver)
 
+        #Loading a simple webpage to save resources as gradient node website is really heavy 
+        #I could use this as a way to see advertisement lol 
+        #if u are reading this and want your website instead of example.com contact me XD 
+
         driver.get("https://example.com")
 
         
     except Exception as e:
         logging.error(f'An error occurred: {e}')
-        time.sleep(1500)
         driver.quit()
 
     while True:
