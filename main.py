@@ -9,8 +9,11 @@ import subprocess
 
 
 
+
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp"}
 docker = os.getenv("ISDOCKER")
+
+
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -122,17 +125,6 @@ def runGradientNode(driver,email,password):
     driver.switch_to.window(window_handles[0])
     
 
-    logging.info('Clicking the extension button...')
-    driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
-    time.sleep(random.randint(6,13))
-
-    button = driver.find_element(By.XPATH,"/html/body/div[3]/div/div[2]/div/div[1]/div/div/div/button")
-    button.click()
-    time.sleep(random.randint(6,13))
-
-    button = driver.find_element(By.XPATH,"//button[@class='w-full h-[48px] text-center flex-row-center rounded-[125px] text-[16px] font-normal leading-[100%] bg-black text-white mt-[32px] z-20 Helveticae']")
-    button.click()
-
     logging.info('Logged in successfully.')
     logging.info('Earning...')
 
@@ -178,10 +170,13 @@ def run():
 
     
     chrome_options = Options()
-    chrome_options.add_argument("--disable-blink-features=CSSAnimations,CSSTransitions")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
 
     prefs = {"profile.managed_default_content_settings.images":2}
     chrome_options.add_experimental_option("prefs", prefs)
+
+
 
     # Read variables from the OS env
     if docker == 'true':
@@ -228,7 +223,11 @@ def run():
 
 
 
+    # Enable CDP
+    driver.execute_cdp_cmd("Network.enable", {})
 
+    # Block CSS requests
+    driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*.css", "*.png", "*.svg"]})
 
 
 
