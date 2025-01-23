@@ -1,2 +1,19 @@
 ilehaonighjijnmpnagapkhpcdbhclfg/*
 tmp.py
+.env
+
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment files
+.env
+.venv/
+
+# Ignore logs
+*.log
+
+# Ignore Chrome user data
+chrome_user_data/
