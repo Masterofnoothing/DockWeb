@@ -72,7 +72,7 @@ def runDespeed(driver,email,password,extension_id):
 
 def runGrass(driver,email,password,extension_id):
      # Navigate to a webpage
-        logging.info('Navigating to the website...')
+        logging.info('Navigating to the grass...')
         time.sleep(5)
         clearMemory(driver)
         driver.get("https://app.getgrass.io/dashboard")

@@ -7,25 +7,33 @@ DockWeb is a versatile Docker image designed to run multiple money-making web ex
 
 ## **Supported Apps**
  - [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
- - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) (Soon)
  - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
+ - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) (Soon)
 
 More will be added soon ;) 
 
-## **Quick Start 🚀**
+## **Deployment Guide 🚀**
 
-Run the Docker container with your credentials for supported web extensions as environment variables. Replace `<your_email>` and `<your_password>` with your Grass account details (or details of other extensions):  
+To instantiate the Docker container with appropriate credentials for web extensions, set the required environment variables. Substitute `<your_email>` and `<your_password>` with your Grass account credentials or those corresponding to other supported extensions:
 
 ```bash
-docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> -e GRADIENT_EMAIL=<your_email> -e GRADIENT_PASS=<your_password> carbon2029/dockweb
+docker run -d \
+  -e GRASS_USER=<your_email> \
+  -e GRASS_PASS=<your_password> \
+  -e GRADIENT_EMAIL=<your_email> \
+  -e GRADIENT_PASS=<your_password> \
+  -v ./chrome_user_data:/chrome_user_data \
+  carbon2029/dockweb
 ```
 
-only enter the environment variables for the app you will run 
----
+### **Persistent Data Management**
+To maintain browser session continuity across container lifecycle events, a volume mount has been configured. This mechanism ensures the preservation of Chrome user data by mapping `./chrome_user_data` from the host system to `/chrome_user_data` within the containerized environment, thereby enabling persistent storage and seamless session restoration.
 
 
 
-## **Usage**
+
+
+## **Advance Usage**
 
 1. **Pull the Docker image:**  
    ```bash
@@ -83,8 +91,7 @@ As of 11/25/2024 only grass had made their airdrop other are claiming to pay soo
 ## **Planned Improvements**
 
 - Further reduce resource usage.  
-- Expand support for new web extensions.  
-- Implement logs for debugging and monitoring.  
+- Expand support for new web extensions.   
 
 ---
 
