@@ -9,25 +9,28 @@ DockWeb is a versatile Docker image designed to efficiently run multiple web ext
 - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
 - [DawnInternet](https://www.dawninternet.com/) *sufx302h use this code pretty please*
 - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) *(Coming Soon)*
-- [Teno](https://bit.ly/teneo-community-node)*(very soon ;0  S7erg use this code pretty please)*
+- [Teno](https://bit.ly/teneo-community-node)*S7erg use this code pretty please*
 ---
 
 ## **Deployment Guide** 🚀
 
 To deploy DockWeb with the appropriate credentials, set the required environment variables. Replace `<your_email>` and `<your_password>` with the credentials associated with the respective extensions. If the same credentials apply to all extensions, use `ALL_EMAIL` and `ALL_PASS`:
 
+### **Basic Command (Beginner Friendly)**
 ```bash
 docker run -d \
-  -e ALL_EMAIL=<your_email> \
-  -e ALL_PASS=<your_password> \
-  -e GRASS_USER=<your_email> \
-  -e GRASS_PASS=<your_password> \
-  -e GRADIENT_EMAIL=<your_email> \
-  -e GRADIENT_PASS=<your_password> \
-  -e DAWN_EMAIL=<your_email> \
-  -e DAWN_PASS=<your_password> \
-  -v ./chrome_user_data:/chrome_user_data \
-  -p 5000:5000 \
+  --env ALL_EMAIL=<your_email> \
+  --env ALL_PASS=<your_password> \
+  --env GRASS_USER=<your_email> \
+  --env GRASS_PASS=<your_password> \
+  --env GRADIENT_EMAIL=<your_email> \
+  --env GRADIENT_PASS=<your_password> \
+  --env DAWN_EMAIL=<your_email> \
+  --env DAWN_PASS=<your_password> \
+  --env TENO_EMAIL=<your_email> \
+  --env TENO_PASS=<your_password> \
+  --volume ./chrome_user_data:/chrome_user_data \
+  --publish 5000:5000 \
   carbon2029/dockweb
 ```
 
@@ -35,16 +38,18 @@ docker run -d \
 
 | Variable Name     | Description                                         |
 |------------------|-------------------------------------------------|
-| `ALL_EMAIL`      | Universal email for all extensions (if same)   |
-| `ALL_PASS`       | Universal password for all extensions (if same) |
-| `GRASS_USER`     | Email for Grass extension                      |
-| `GRASS_PASS`     | Password for Grass extension                   |
-| `GRADIENT_EMAIL` | Email for GradientNode extension               |
-| `GRADIENT_PASS`  | Password for GradientNode extension            |
-| `DAWN_EMAIL`     | Email for Dawn extension                       |
-| `DAWN_PASS`      | Password for Dawn extension                    |
-| `-v ./chrome_user_data:/chrome_user_data` | Maps Chrome user data for session persistence |
-| `-p 5000:5000`   | Exposes port 5000 for web-based interactions    |
+| ALL_EMAIL      | Universal email for all extensions (if same)   |
+| ALL_PASS       | Universal password for all extensions (if same) |
+| GRASS_USER     | Email for Grass extension                      |
+| GRASS_PASS     | Password for Grass extension                   |
+| GRADIENT_EMAIL | Email for GradientNode extension               |
+| GRADIENT_PASS  | Password for GradientNode extension            |
+| DAWN_EMAIL     | Email for Dawn extension                       |
+| DAWN_PASS      | Password for Dawn extension                    |
+| TENO_EMAIL     | Email for Teno                                  |
+| TENO_PASS     | Password for Teno                                |
+| -v ./chrome_user_data:/chrome_user_data | Maps Chrome user data for session persistence |
+| -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
 ### **Persistent Data Management**
 To ensure session continuity across container restarts, DockWeb uses a volume mount for Chrome user data. This maps `./chrome_user_data` from the host system to `/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
@@ -61,7 +66,7 @@ docker pull carbon2029/dockweb
 ### **2. Run the Container:**
 Run the container while supplying credentials for one or more supported extensions:
 ```bash
-docker run -d -e ALL_EMAIL=<your_email> -e ALL_PASS=<your_password> -p 5000:5000 carbon2029/dockweb
+docker run -d --env ALL_EMAIL=<your_email> --env ALL_PASS=<your_password> --publish 5000:5000 carbon2029/dockweb
 ```
 
 ### **3. Monitor the Container:**
@@ -97,10 +102,9 @@ Currently, resource usage is as follows:
 Future updates will focus on further optimizations to reduce resource consumption.
 
 ### **Do these extensions generate revenue?**
-As of **Feb 9, 2025**, only Grass and Nodepay has successfully distributed an airdrop. Other platforms claim to offer payouts in the future. Users should exercise discretion and only participate if they trust the respective platforms.
+As of **Feb 9, 2025**, only Grass and Nodepay have successfully distributed an airdrop. Other platforms claim to offer payouts in the future. Users should exercise discretion and only participate if they trust the respective platforms.
 
 ---
-
 
 ## **License**
 
