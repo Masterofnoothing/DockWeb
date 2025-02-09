@@ -7,10 +7,9 @@ DockWeb is a versatile Docker image designed to efficiently run multiple web ext
 ## **Supported Applications**
 - [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
 - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
+- [DawnInternet](https://www.dawninternet.com/) *sufx302h use this code pretty please*
 - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) *(Coming Soon)*
-
-Additional integrations will be added in future updates.
-
+- [Teno](https://bit.ly/teneo-community-node)*(very soon ;0  S7erg use this code pretty please)*
 ---
 
 ## **Deployment Guide** 🚀

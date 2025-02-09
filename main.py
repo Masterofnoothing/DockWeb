@@ -53,7 +53,7 @@ def submit():
 
 
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp",
-                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem"}
+                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teno":"emcclcoaglgcpoognfiggmhnhgabppkm"}
 docker = os.getenv("ISDOCKER")
 
 if not docker:
@@ -111,6 +111,76 @@ def askCapcha():
 
     logging.info("CAPTCHA entered.")
     return captcha_text
+
+def runTeno(driver,email,password,extension_id):
+     # Navigate to a webpage
+    logging.info('Navigating to Teno Website...')
+    time.sleep(5)
+    driver.get("https://dashboard.teneo.pro/dashboard")
+    time.sleep(random.randint(7,15))
+    if driver.current_url == "https://dashboard.teneo.pro/dashboard":
+        logging.info("Already logged in skipping login")
+        time.sleep(random.randint(10,50))
+        logging.info('Accessing extension settings page...')
+        driver.get(f'chrome-extension://{extension_id}/index.html')
+        time.sleep(random.randint(3,7))
+
+        #if extension acts weird 
+        try:
+            jionButton = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/button")
+            jionButton.click()
+            time.sleep(random.randint(3,7))
+            
+            driver.get(f'chrome-extension://{extension_id}/index.html')
+            time.sleep(random.randint(3,7))
+        except:
+            pass
+
+        logging.info('Clicking the connect button...')
+        connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
+        connect_button.click()
+
+        logging.info('Earning...')
+
+        time.sleep(random.randint(1,30))
+
+        return
+    time.sleep(random.randint(3,7))
+
+    logging.info('Entering credentials...')
+    email_element = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/div[1]/input")
+    email_element.send_keys(email)
+    password_element = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/div[2]/div/input")
+    password_element.send_keys(password)
+            
+    
+    logging.info('Clicking the login button...')
+    login_button = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/button")
+    login_button.click()
+    logging.info('Waiting response...')
+
+    time.sleep(random.randint(10,50))
+    logging.info('Accessing extension settings page...')
+
+    driver.get(f'chrome-extension://{extension_id}/index.html')
+    time.sleep(random.randint(3,7))
+
+    jionButton = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/button")
+    jionButton.click()
+    time.sleep(random.randint(3,7))
+
+    driver.get(f'chrome-extension://{extension_id}/index.html')
+    time.sleep(random.randint(3,7))
+    logging.info('Clicking the connect button...')
+    connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
+    connect_button.click()
+
+    logging.info('Earning...')
+
+    time.sleep(random.randint(1,30))
+
+    return
+
 def runDawn(driver, email, password, extension_id):
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
     time.sleep(random.randint(7,15))
@@ -128,7 +198,7 @@ def runDawn(driver, email, password, extension_id):
     except:
         logging.info("Already Logged in Skipping")
         return
-    logging.info("Navigating to the website...")
+    logging.info("Navigating to Dawn website...")
     time.sleep(5)
 
     driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
@@ -337,23 +407,27 @@ def run():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Default")
-
+    #For developement environment
+    load_dotenv()
 
     # Read variables from the OS env
+    # Fetch universal credentials if available
+    all_email = os.getenv('ALL_EMAIL')
+    all_pass = os.getenv('ALL_PASS')
+
+    # Fetch individual credentials, falling back to all_email/all_pass if not set
+    grass_email = os.getenv('GRASS_USER', all_email)
+    grass_password = os.getenv('GRASS_PASS', all_pass)
+
+    gradient_email = os.getenv('GRADIENT_EMAIL', all_email)
+    gradient_password = os.getenv('GRADIENT_PASS', all_pass)
+
+    dawn_email = os.getenv('DAWN_EMAIL', all_email)
+    dawn_password = os.getenv('DAWN_PASS', all_pass)
+
+    teno_email = os.getenv('TENO_EMAIL', all_email)
+    teno_password = os.getenv('TENO_PASS', all_pass)
     if docker == 'true':
-        # Fetch universal credentials if available
-        all_email = os.getenv('ALL_EMAIL')
-        all_pass = os.getenv('ALL_PASS')
-
-        # Fetch individual credentials, falling back to all_email/all_pass if not set
-        grass_email = os.getenv('GRASS_USER', all_email)
-        grass_password = os.getenv('GRASS_PASS', all_pass)
-
-        gradient_email = os.getenv('GRADIENT_EMAIL', all_email)
-        gradient_password = os.getenv('GRADIENT_PASS', all_pass)
-
-        dawn_email = os.getenv('DAWN_EMAIL', all_email)
-        dawn_password = os.getenv('DAWN_PASS', all_pass)
 
 
 
@@ -380,20 +454,14 @@ def run():
             download_extension(extensionIds['dawn'])
             id = extensionIds['dawn']
             chrome_options.add_extension(f"./{id}.crx")
-
+        if teno_email and teno_password:
+            logging.info("Installing Dawn Internet....")
+            download_extension(extensionIds['teno'])
+            id = extensionIds['teno']
+            chrome_options.add_extension(f"./{id}.crx")
         driver = webdriver.Chrome(options=chrome_options)
 
     else:
-        load_dotenv()
-
-        grass_email = os.getenv('GRASS_USER')
-        grass_password = os.getenv('GRASS_PASS')
-
-        gradient_email = os.getenv('GRADIENT_EMAIL')
-        gradient_password = os.getenv('GRADIENT_PASS')
-
-        dawn_email = os.getenv('DAWN_EMAIL')
-        dawn_password = os.getenv('DAWN_PASS')
 
 
 
@@ -410,7 +478,10 @@ def run():
         if  dawn_email and  dawn_password:
             logging.info('Installing Dawn')
             download_extension(extensionIds['dawn'],driver)
-
+        if teno_email and teno_password:
+            logging.info("Installing Dawn Internet....")
+            download_extension(extensionIds['teno'],driver)
+         
 
     # Enable CDP
     driver.execute_cdp_cmd("Network.enable", {})
@@ -428,11 +499,15 @@ def run():
         clearMemory(driver)
         if  grass_email and  grass_password:
             runGrass(driver,grass_email,grass_password,extensionIds['grass'])
+        clearMemory(driver)
         if dawn_email and dawn_password:
             runDawn(driver,dawn_email,dawn_password,extensionIds['dawn'])
             
         clearMemory(driver)
+        if teno_email and teno_password:
+            runTeno(driver,teno_email,teno_password,extensionIds['teno'])
 
+        clearMemory(driver)
         #Loading a simple webpage to save resources as gradient node website is really heavy 
         #I could use this as a way to see advertisement lol 
         #if u are reading this and want your website instead of example.com contact me XD 
