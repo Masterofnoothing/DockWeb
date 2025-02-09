@@ -10,11 +10,12 @@ DockWeb is a versatile Docker image designed to efficiently run multiple web ext
 - [DawnInternet](https://www.dawninternet.com/) *sufx302h use this code pretty please*
 - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) *(Coming Soon)*
 - [Teno](https://bit.ly/teneo-community-node)*S7erg use this code pretty please*
+
 ---
 
 ## **Deployment Guide** 🚀
 
-To deploy DockWeb with the appropriate credentials, set the required environment variables. Replace `<your_email>` and `<your_password>` with the credentials associated with the respective extensions. If the same credentials apply to all extensions, use `ALL_EMAIL` and `ALL_PASS`:
+To deploy DockWeb with the appropriate credentials, set the required environment variables. You can specify credentials for all extensions at once using `ALL_EMAIL` and `ALL_PASS`, or define them individually as needed.
 
 ### **Basic Command (Beginner Friendly)**
 ```bash
@@ -34,6 +35,9 @@ docker run -d \
   carbon2029/dockweb
 ```
 
+> **Note:** You only need to include the variables for the extensions you plan to use.
+**Tip** This is too defacult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
+
 ### **Supported Environment Variables**
 
 | Variable Name     | Description                                         |
@@ -52,7 +56,7 @@ docker run -d \
 | -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
 ### **Persistent Data Management**
-To ensure session continuity across container restarts, DockWeb uses a volume mount for Chrome user data. This maps `./chrome_user_data` from the host system to `/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
+To ensure session continuity across container restarts, DockWeb includes a volume mount for Chrome user data by default. This maps `./chrome_user_data` from the host system to `/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
 
 ---
 
@@ -66,7 +70,9 @@ docker pull carbon2029/dockweb
 ### **2. Run the Container:**
 Run the container while supplying credentials for one or more supported extensions:
 ```bash
-docker run -d --env ALL_EMAIL=<your_email> --env ALL_PASS=<your_password> --publish 5000:5000 carbon2029/dockweb
+docker run -d --env ALL_EMAIL=<your_email> --env ALL_PASS=<your_password> \
+  --volume ./chrome_user_data:/chrome_user_data \
+  --publish 5000:5000 carbon2029/dockweb
 ```
 
 ### **3. Monitor the Container:**
@@ -119,4 +125,3 @@ This software is distributed under the [GNU General Public License (GPL-3.0)](ht
 Special thanks to [MRColorR](https://github.com/MRColorR) for contributions to this project.
 
 If you find this project helpful, consider using the referral links provided. Your support helps fund the development of more free and open-source projects. ❤️
-
