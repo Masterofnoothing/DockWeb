@@ -9,7 +9,7 @@ DockWeb is a versatile Docker image designed to efficiently run multiple web ext
 - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
 - [DawnInternet](https://www.dawninternet.com/) *sufx302h use this code pretty please*
 - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) *(Coming Soon)*
-- [Teno](https://bit.ly/teneo-community-node)*S7erg use this code pretty please*
+- [Teno](https://bit.ly/teneo-community-node) *S7erg use this code pretty please*
 
 ---
 
@@ -36,7 +36,7 @@ docker run -d \
 ```
 
 > **Note:** You only need to include the variables for the extensions you plan to use.
-**Tip** This is too defacult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
+> **Tip** This is too defacult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
 
 ### **Supported Environment Variables**
 

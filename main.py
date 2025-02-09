@@ -455,7 +455,7 @@ def run():
             id = extensionIds['dawn']
             chrome_options.add_extension(f"./{id}.crx")
         if teno_email and teno_password:
-            logging.info("Installing Dawn Internet....")
+            logging.info("Installing Teno Community Node....")
             download_extension(extensionIds['teno'])
             id = extensionIds['teno']
             chrome_options.add_extension(f"./{id}.crx")
@@ -479,7 +479,7 @@ def run():
             logging.info('Installing Dawn')
             download_extension(extensionIds['dawn'],driver)
         if teno_email and teno_password:
-            logging.info("Installing Dawn Internet....")
+            logging.info("Installing Teno Community Node....")
             download_extension(extensionIds['teno'],driver)
          
 
