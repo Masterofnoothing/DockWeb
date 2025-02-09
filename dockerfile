@@ -5,28 +5,35 @@ ENV GIT_USERNAME=sryze
 ENV GIT_REPO=crx-dl
 ENV ISDOCKER=true
 
-
-# Install necessary packages then clean up to reduce image size
+# Install necessary packages
 RUN apt update && \
     apt upgrade -y && \
-    apt install -qqy \
-    curl \
-    wget \
-    git \
-    chromium \
-    chromium-driver \
-    python3 \
-    python3-selenium && \
+    apt install -y --no-install-recommends \
+        curl \
+        wget \
+        git \
+        chromium \
+        chromium-driver \
+        python3 \
+        python3-pip \
+        python3-flask \
+        python3-requests \
+        python3-selenium && \
     apt autoremove --purge -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Download crx dowloader from git
+# Set working directory
+WORKDIR /app
+
+# Download crx downloader from GitHub
 RUN git clone "https://github.com/${GIT_USERNAME}/${GIT_REPO}.git" && \
     chmod +x ./${GIT_REPO}/crx-dl.py
 
+# Copy project files
+COPY . .
 
-# Install python requirements
-COPY main.py .
-# RUN pip install -r requirements.txt
-ENTRYPOINT [ "python3", "main.py" ]
+# Set entrypoint
+ENTRYPOINT ["python3", "main.py"]
+
+EXPOSE 5000

@@ -8,6 +8,47 @@ import logging
 import subprocess
 
 
+from flask import Flask, render_template, request, send_file
+import threading
+import time
+import os
+import requests
+
+
+
+
+app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.disabled = True
+# Path for storing the CAPTCHA image and result
+CAPTCHA_IMAGE_PATH = "./static/screenshot.png"
+CAPTCHA_RESULT_PATH = "./static/captcha_result.txt"
+
+
+def runFlask():
+    try:
+        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
+    except:
+        pass
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/captcha")
+def serve_captcha():
+    return send_file(CAPTCHA_IMAGE_PATH, mimetype="image/png")
+
+@app.route("/submit", methods=["POST"])
+def submit():
+    user_input = request.form.get("captcha_text")
+    if user_input:
+        with open(CAPTCHA_RESULT_PATH, "w") as f:
+            f.write(user_input)
+        
+        return "CAPTCHA submitted successfully! The script will now continue."
+    return "Invalid input, please try again."
 
 
 
@@ -57,17 +98,89 @@ def handle_cookie_banner(driver):
             logging.info('Cookies accepted.')
     except Exception:
         pass
+def askCapcha():
+    
+    while not os.path.exists(CAPTCHA_RESULT_PATH):
+        time.sleep(1)
 
-def runDespeed(driver,email,password,extension_id):
+    # Read the CAPTCHA result
+    with open(CAPTCHA_RESULT_PATH, "r") as f:
+        captcha_text = f.read().strip()
 
-     # Navigate to a webpage
-        logging.info('Navigating to the website...')
-        time.sleep(5)
-        window_handles = driver.window_handles
 
-        driver.switch_to.window(window_handles[0])
-        driver.get("https://app.despeed.net/")
-        time.sleep(random.randint(3,7)*500)
+
+    logging.info("CAPTCHA entered.")
+    return captcha_text
+def runDawn(driver, email, password, extension_id):
+    driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
+    time.sleep(random.randint(7,15))
+    try:
+        # Switch to the alert
+        alert = driver.switch_to.alert
+
+        # Accept the alert
+        alert.accept()
+        time.sleep(0.99)
+        alert = driver.switch_to.alert
+
+        # Accept the alert
+        alert.accept()
+    except:
+        logging.info("Already Logged in Skipping")
+        return
+    logging.info("Navigating to the website...")
+    time.sleep(5)
+
+    driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
+    time.sleep(random.randint(3, 7))
+
+    emailElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[1]/div[1]/input")
+    emailElement.send_keys(email)
+    time.sleep(random.randint(3, 7))
+
+    passElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[1]/div[2]/input")
+    passElement.send_keys(password)
+    time.sleep(random.randint(3, 7))
+
+    capElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/div/input")
+    capchaImg = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/img")
+
+
+    # Start Flask server in a separate thread
+    flask_thread = threading.Thread(target=lambda: runFlask(), daemon=True)
+    flask_thread.start()
+
+    
+    logging.info("Solve the CAPTCHA at http://localhost:5000")
+
+    solved = False
+    while not solved:
+        try:
+            os.remove(CAPTCHA_IMAGE_PATH)
+            os.remove(CAPTCHA_RESULT_PATH)
+        except:
+            pass
+        capchaImg.screenshot(CAPTCHA_IMAGE_PATH)
+        capElement.click()
+        capElement.clear()
+        capElement.send_keys(askCapcha())
+        time.sleep(random.randint(3, 7))
+        login_button = driver.find_element(By.XPATH,"/html/body/div[1]/div[2]/div[2]/form/div/div/div[4]/a/button")
+        login_button.click()
+        time.sleep(random.randint(3, 7))
+
+        if driver.current_url != f"chrome-extension://{extension_id}/pages/signin.html":
+            solved = True
+            logging.info("Capcha Solved Sucessfully")
+        else:
+            logging.info("Incorrect Capcha")
+
+    # Fina a way to stop the flask thread
+
+    
+    time.sleep(random.randint(5,12))
+
+    logging.info("Earning started.")
 
 
 def runGrass(driver,email,password,extension_id):
@@ -181,13 +294,13 @@ def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py")
     """
     if docker == 'true':
         try:
-            print(f"Starting download for extension ID: {extension_id}")
+            logging.info(f"Starting download for extension ID: {extension_id}")
             result = subprocess.run(["python3",repo_path, extension_id], check=True, text=True, capture_output=True)
-            print("Download successful!")
-            print(result.stdout)
+            logging.info("Download successful!")
+            logging.info(result.stdout)
         except subprocess.CalledProcessError as e:
-            print("An error occurred while downloading the extension:")
-            print(e.stderr)
+            logging.info("An error occurred while downloading the extension:")
+            logging.error(e.stderr)
     else:
         url = f"https://chromewebstore.google.com/detail/{extension_id}"
         print(f"Opening: {url}")
@@ -228,15 +341,20 @@ def run():
 
     # Read variables from the OS env
     if docker == 'true':
-        grass_email = os.getenv('GRASS_USER')
-        grass_password = os.getenv('GRASS_PASS')
+        # Fetch universal credentials if available
+        all_email = os.getenv('ALL_EMAIL')
+        all_pass = os.getenv('ALL_PASS')
 
-        gradient_email = os.getenv('GRADIENT_EMAIL')
-        gradient_password = os.getenv('GRADIENT_PASS')
+        # Fetch individual credentials, falling back to all_email/all_pass if not set
+        grass_email = os.getenv('GRASS_USER', all_email)
+        grass_password = os.getenv('GRASS_PASS', all_pass)
 
+        gradient_email = os.getenv('GRADIENT_EMAIL', all_email)
+        gradient_password = os.getenv('GRADIENT_PASS', all_pass)
 
-        despeed_email = os.getenv('DESPEED_EMAIL')
-        despeed_password = os.getenv('DESPEED_PASS')
+        dawn_email = os.getenv('DAWN_EMAIL', all_email)
+        dawn_password = os.getenv('DAWN_PASS', all_pass)
+
 
 
         chrome_options.add_argument('--no-sandbox')
@@ -257,10 +375,10 @@ def run():
             id = extensionIds["gradient"]
             chrome_options.add_extension(f"./{id}.crx")
 
-        if despeed_email and despeed_password:
-            logging.info("Installing DeSpeed....")
-            download_extension(extensionIds['despeed'])
-            id = extensionIds['despeed']
+        if dawn_email and dawn_password:
+            logging.info("Installing Dawn Internet....")
+            download_extension(extensionIds['dawn'])
+            id = extensionIds['dawn']
             chrome_options.add_extension(f"./{id}.crx")
 
         driver = webdriver.Chrome(options=chrome_options)
@@ -274,8 +392,8 @@ def run():
         gradient_email = os.getenv('GRADIENT_EMAIL')
         gradient_password = os.getenv('GRADIENT_PASS')
 
-        despeed_email = os.getenv('DESPEED_EMAIL')
-        despeed_password = os.getenv('DESPEED_PASSWORD')
+        dawn_email = os.getenv('DAWN_EMAIL')
+        dawn_password = os.getenv('DAWN_PASS')
 
 
 
@@ -289,9 +407,9 @@ def run():
             logging.info('Installing Gradient')
             download_extension(extensionIds['gradient'],driver)
 
-        if  despeed_email and  despeed_password:
-            logging.info('Installing DeSpeed')
-            download_extension(extensionIds['gradient'],driver)
+        if  dawn_email and  dawn_password:
+            logging.info('Installing Dawn')
+            download_extension(extensionIds['dawn'],driver)
 
 
     # Enable CDP
@@ -310,8 +428,8 @@ def run():
         clearMemory(driver)
         if  grass_email and  grass_password:
             runGrass(driver,grass_email,grass_password,extensionIds['grass'])
-        if despeed_password and despeed_password:
-            runDespeed(driver,despeed_email,despeed_password,extensionIds['despeed'])
+        if dawn_email and dawn_password:
+            runDawn(driver,dawn_email,dawn_password,extensionIds['dawn'])
             
         clearMemory(driver)
 
@@ -335,5 +453,6 @@ def run():
             break
 
 
+if __name__ == "__main__":
 
-run()
+    run()

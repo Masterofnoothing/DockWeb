@@ -1,114 +1,119 @@
+# **DockWeb: Unified Web Extension Deployment**
 
-# **DockWeb**
-
-DockWeb is a versatile Docker image designed to run multiple money-making web extensions in a single container. As more Grass-like web extensions are emerging, DockWeb provides an efficient way to manage and deploy them together.  
+DockWeb is a versatile Docker image designed to efficiently run multiple web extensions within a single container. As the landscape of monetizable web extensions expands, DockWeb provides a seamless solution for managing and deploying them collectively.
 
 ---
 
-## **Supported Apps**
- - [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
- - [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
- - [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) (Soon)
+## **Supported Applications**
+- [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
+- [GradientNode](https://app.gradient.network/signup?code=WL8GSK)
+- [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) *(Coming Soon)*
 
-More will be added soon ;) 
+Additional integrations will be added in future updates.
 
-## **Deployment Guide 🚀**
+---
 
-To instantiate the Docker container with appropriate credentials for web extensions, set the required environment variables. Substitute `<your_email>` and `<your_password>` with your Grass account credentials or those corresponding to other supported extensions:
+## **Deployment Guide** 🚀
+
+To deploy DockWeb with the appropriate credentials, set the required environment variables. Replace `<your_email>` and `<your_password>` with the credentials associated with the respective extensions. If the same credentials apply to all extensions, use `ALL_EMAIL` and `ALL_PASS`:
 
 ```bash
 docker run -d \
+  -e ALL_EMAIL=<your_email> \
+  -e ALL_PASS=<your_password> \
   -e GRASS_USER=<your_email> \
   -e GRASS_PASS=<your_password> \
   -e GRADIENT_EMAIL=<your_email> \
   -e GRADIENT_PASS=<your_password> \
+  -e DAWN_EMAIL=<your_email> \
+  -e DAWN_PASS=<your_password> \
   -v ./chrome_user_data:/chrome_user_data \
+  -p 5000:5000 \
   carbon2029/dockweb
 ```
 
+### **Supported Environment Variables**
+
+| Variable Name     | Description                                         |
+|------------------|-------------------------------------------------|
+| `ALL_EMAIL`      | Universal email for all extensions (if same)   |
+| `ALL_PASS`       | Universal password for all extensions (if same) |
+| `GRASS_USER`     | Email for Grass extension                      |
+| `GRASS_PASS`     | Password for Grass extension                   |
+| `GRADIENT_EMAIL` | Email for GradientNode extension               |
+| `GRADIENT_PASS`  | Password for GradientNode extension            |
+| `DAWN_EMAIL`     | Email for Dawn extension                       |
+| `DAWN_PASS`      | Password for Dawn extension                    |
+| `-v ./chrome_user_data:/chrome_user_data` | Maps Chrome user data for session persistence |
+| `-p 5000:5000`   | Exposes port 5000 for web-based interactions    |
+
 ### **Persistent Data Management**
-To maintain browser session continuity across container lifecycle events, a volume mount has been configured. This mechanism ensures the preservation of Chrome user data by mapping `./chrome_user_data` from the host system to `/chrome_user_data` within the containerized environment, thereby enabling persistent storage and seamless session restoration.
-
-
-
-
-
-## **Advance Usage**
-
-1. **Pull the Docker image:**  
-   ```bash
-   docker pull carbon2029/dockweb
-   ```
-
-2. **Run the container:**  
-   Provide credentials for one or more supported extensions as environment variables. For example:  
-   ```bash
-   docker run -d -e GRASS_USER=<your_email> -e GRASS_PASS=<your_password> carbon2029/dockweb
-   ```
- 
-
-3. **Monitor the container:**  
-   To check if the container is running:  
-   ```bash
-   docker ps
-   ```
-
-4. **Stop the container:**  
-   ```bash
-   docker stop <container_id>
-   ```
-
+To ensure session continuity across container restarts, DockWeb uses a volume mount for Chrome user data. This maps `./chrome_user_data` from the host system to `/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
 
 ---
 
-## **Features**
+## **Advanced Usage**
 
-- **Multi-Extension Support:** Run multiple web extensions in one container.  
-- **Easy Setup:** Minimal configuration required.  
-- **Resource Efficiency:** Consolidates extensions to save on system resources.  
-- **Scalable:** Add support for new extensions as they emerge.  
-- **Cross-Platform Compatibility:** Works seamlessly on any system that supports Docker.  
+### **1. Pull the Docker Image:**
+```bash
+docker pull carbon2029/dockweb
+```
+
+### **2. Run the Container:**
+Run the container while supplying credentials for one or more supported extensions:
+```bash
+docker run -d -e ALL_EMAIL=<your_email> -e ALL_PASS=<your_password> -p 5000:5000 carbon2029/dockweb
+```
+
+### **3. Monitor the Container:**
+To verify if the container is running:
+```bash
+docker ps
+```
+
+### **4. Stop the Container:**
+```bash
+docker stop <container_id>
+```
+
+---
+
+## **Key Features**
+
+- **Multi-Extension Support:** Run multiple web extensions in a single container.
+- **Simple Setup:** Minimal configuration required for deployment.
+- **Resource Optimization:** Reduces system overhead by consolidating extensions.
+- **Scalability:** Designed to accommodate new extensions as they emerge.
+- **Cross-Platform Compatibility:** Works on any Docker-supported system.
 
 ---
 
-## **FAQ**
- 
+## **Frequently Asked Questions (FAQ)**
 
-### **Is it lightweight?**  
-Not entirely at the moment. Current resource usage:  
-- **CPU**: ~0.01 - 1%  
-- **RAM**: ~275 MB  
+### **Is DockWeb lightweight?**
+Currently, resource usage is as follows:
+- **CPU:** ~0.01 - 1%
+- **RAM:** ~400 MB (With 3 apps)
 
-Optimizations are planned in future updates.  
+Future updates will focus on further optimizations to reduce resource consumption.
 
-### **Do the apps pay?**  
-As of 11/25/2024 only grass had made their airdrop other are claiming to pay soon Time will tell so only use the apps if you trust them.
-
-  
+### **Do these extensions generate revenue?**
+As of **Feb 9, 2025**, only Grass and Nodepay has successfully distributed an airdrop. Other platforms claim to offer payouts in the future. Users should exercise discretion and only participate if they trust the respective platforms.
 
 ---
 
-## **Planned Improvements**
-
-- Further reduce resource usage.  
-- Expand support for new web extensions.   
-
----
 
 ## **License**
 
-This program is free software, distributed under the terms of the [GNU General Public License (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html).  
-You are free to redistribute and/or modify it under the license terms.  
+This software is distributed under the [GNU General Public License (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html). Users are free to redistribute and modify it in accordance with the license terms.
 
-**Note:** This software is provided without warranty; use it at your own risk.  
-
----
-
-## **Disclaimer**
-This is an unofficial build and not affiliated or officially endorsed by Grass (getgrass) or any other apps. This repository (project) and its assets are provided "as is" without warranty of any kind. The author makes no warranties, express or implied, that this project and its assets are free of errors, defects, or suitable for any particular purpose. The author shall not be liable for any damages suffered by any user of this project, whether direct, indirect, incidental, consequential, or special, arising from the use of or inability to use this project, its assets or its documentation, even if the author has been advised of the possibility of such damages. 
+**Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage.
 
 ---
 
-## **Note**
-Special thanks to [MRColorR](https://github.com/MRColorR) for helping out with this project.
-Also if you use any referral link it helps me create more free projects thank you it means a lot <3
+## **Acknowledgments**
+
+Special thanks to [MRColorR](https://github.com/MRColorR) for contributions to this project.
+
+If you find this project helpful, consider using the referral links provided. Your support helps fund the development of more free and open-source projects. ❤️
+
