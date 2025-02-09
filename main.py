@@ -185,6 +185,7 @@ def runTeno(driver,email,password,extension_id):
 def runDawn(driver, email, password, extension_id):
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
     time.sleep(random.randint(7,15))
+    logging.info("Navigating to Dawn website...")
     try:
         # Switch to the alert
         alert = driver.switch_to.alert
@@ -198,8 +199,8 @@ def runDawn(driver, email, password, extension_id):
         alert.accept()
     except:
         logging.info("Already Logged in Skipping")
+        logging.info("earning")
         return
-    logging.info("Navigating to Dawn website...")
     time.sleep(5)
 
     driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
