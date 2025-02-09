@@ -58,7 +58,8 @@ docker = os.getenv("ISDOCKER")
 
 if not docker:
     from dotenv import load_dotenv
-
+    #For developement environment
+    load_dotenv()
 
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -407,8 +408,7 @@ def run():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Default")
-    #For developement environment
-    load_dotenv()
+    
 
     # Read variables from the OS env
     # Fetch universal credentials if available
