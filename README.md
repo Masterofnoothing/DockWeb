@@ -36,7 +36,9 @@ docker run -d \
 ```
 
 > **Note:** You only need to include the variables for the extensions you plan to use.
-> **Tip** This is too defacult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
+
+
+> **Tip** This is too difficult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
 
 ### **Supported Environment Variables**
 

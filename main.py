@@ -136,10 +136,15 @@ def runTeno(driver,email,password,extension_id):
             time.sleep(random.randint(3,7))
         except:
             pass
-
-        logging.info('Clicking the connect button...')
+        
         connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
-        connect_button.click()
+
+        # Check if the button text is "Connect"
+        if connect_button.text.strip().lower() == "connect node":
+            logging.info('Clicking the connect button...')
+            connect_button.click()
+        else:
+            logging.info('Button does not say "Connect". Skipping click.')
 
         logging.info('Earning...')
 
@@ -174,9 +179,13 @@ def runTeno(driver,email,password,extension_id):
     time.sleep(random.randint(3,7))
     logging.info('Clicking the connect button...')
     connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
-    connect_button.click()
-
-    logging.info('Earning...')
+    # Check if the button text is "Connect"
+    if connect_button.text.strip().lower() == "connect node":
+        logging.info('Clicking the connect button...')
+        connect_button.click()
+    else:
+        logging.info('Button does not say "Connect". Skipping click.')
+        logging.info('Earning...')
 
     time.sleep(random.randint(1,30))
 
