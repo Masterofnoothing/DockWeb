@@ -40,6 +40,11 @@ docker run -d \
 
 > **Tip** This is too difficult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
 
+### **Changelog**  
+- Fixed issues with the Teno Community node not connecting.  
+- Improved logging for grass and gradient.  
+- If you encounter any bugs, please report them in the issues section.  
+
 ### **Supported Environment Variables**
 
 | Variable Name     | Description                                         |

@@ -142,8 +142,9 @@ def runTeno(driver,email,password,extension_id):
         # Check if the button text is "Connect"
         logging.info(f"Button says {connect_button.text}")
         while connect_button.text.strip().lower() == "connect node":
-            logging.info('Clicking the connect button...')
+            logging.info('Ooooooooooo....Maybe I should click it.....')
             connect_button.click()
+            logging.info("I just clicked it!!!")
 
 
             time.sleep(random.randint(1,30))
@@ -278,41 +279,41 @@ class LogColors:
     RESET = "\033[0m"    # Reset color
 
 def runGrass(driver, email, password, extension_id):
-    logging.info(f"{LogColors.HEADER}🚀 Starting Grass automation...{LogColors.RESET}")
+    logging.info(f"{LogColors.HEADER}🚀  Starting Grass automation...{LogColors.RESET}")
 
     # Navigate to the dashboard
-    logging.info(f"{LogColors.OKBLUE}🌍 Navigating to Grass dashboard...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKBLUE}🌍  Navigating to Grass dashboard...{LogColors.RESET}")
     time.sleep(5)
     clearMemory(driver)
     driver.get("https://app.getgrass.io/dashboard")
     time.sleep(random.randint(7, 15))
 
     if driver.current_url == "https://app.getgrass.io/dashboard":
-        logging.info(f"{LogColors.OKGREEN}✅ Already logged in. Skipping login process.{LogColors.RESET}")
+        logging.info(f"{LogColors.OKGREEN}✅  Already logged in. Skipping login process.{LogColors.RESET}")
         time.sleep(random.randint(10, 50))
 
-        logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
+        logging.info(f"{LogColors.WARNING}🔧  Accessing extension settings...{LogColors.RESET}")
         driver.get(f'chrome-extension://{extension_id}/index.html')
         time.sleep(random.randint(3, 7))
 
-        logging.info(f"{LogColors.OKGREEN}🚀 Activating extension...{LogColors.RESET}")
+        logging.info(f"{LogColors.OKGREEN}🚀  Activating extension...{LogColors.RESET}")
         button = driver.find_element(By.XPATH, "//button")
         button.click()
 
         logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Grass is running...{LogColors.RESET}")
         handle_cookie_banner(driver)
-        logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
+        logging.info(f"{LogColors.OKBLUE}💰  Earning in progress...{LogColors.RESET}")
 
         time.sleep(random.randint(1, 30))
         return
 
     # Login process
-    logging.info(f"{LogColors.WARNING}🔄 Redirecting to login page...{LogColors.RESET}")
+    logging.info(f"{LogColors.WARNING}🔄  Redirecting to login page...{LogColors.RESET}")
     driver.get("https://app.getgrass.io/")
     time.sleep(random.randint(3, 7))
     handle_cookie_banner(driver)
 
-    logging.info(f"{LogColors.OKBLUE}🔑 Entering login credentials...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKBLUE}🔑  Entering login credentials...{LogColors.RESET}")
     username = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')
     username.send_keys(email)
     passwd = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
@@ -322,20 +323,20 @@ def runGrass(driver, email, password, extension_id):
     button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/button")
     button.click()
 
-    logging.info(f"{LogColors.WARNING}⏳ Waiting for login response...{LogColors.RESET}")
+    logging.info(f"{LogColors.WARNING}⏳  Waiting for login response...{LogColors.RESET}")
     time.sleep(random.randint(10, 50))
 
-    logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
+    logging.info(f"{LogColors.WARNING}🔧  Accessing extension settings...{LogColors.RESET}")
     driver.get(f'chrome-extension://{extension_id}/index.html')
     time.sleep(random.randint(3, 7))
 
-    logging.info(f"{LogColors.OKGREEN}🚀 Activating extension...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKGREEN}🚀  Activating extension...{LogColors.RESET}")
     button = driver.find_element(By.XPATH, "//button")
     button.click()
 
-    logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Grass is running...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKGREEN}🎉  Successfully logged in! Grass is running...{LogColors.RESET}")
     handle_cookie_banner(driver)
-    logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKBLUE}💰  Earning in progress...{LogColors.RESET}")
 
     time.sleep(random.randint(1, 30))
 
@@ -343,43 +344,53 @@ def runGrass(driver, email, password, extension_id):
 def runNodepay():
     pass
 
-def runGradientNode(driver,email,password):
-    logging.info("Visiting app.gradient.network...................")
+def runGradientNode(driver, email, password):
+    logging.info(f"{LogColors.HEADER}🚀 Starting Gradient Node automation...{LogColors.RESET}")
+
+    # Navigate to Gradient dashboard
+    logging.info(f"{LogColors.OKBLUE}🌍 Visiting Gradient Network dashboard...{LogColors.RESET}")
     clearMemory(driver)
 
     driver.get("https://app.gradient.network/dashboard")
-    time.sleep(random.randint(7,15))
+    time.sleep(random.randint(7, 15))
+
     if driver.current_url == "https://app.gradient.network/dashboard":
-        logging.info("Already loggen in skipping login")
-        driver.get(f"chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
+        logging.info(f"{LogColors.OKGREEN}✅ Already logged in. Skipping login process.{LogColors.RESET}")
+
+        logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
+        driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
         return
+
+    logging.info(f"{LogColors.WARNING}🔄 Redirecting to login page...{LogColors.RESET}")
     driver.get("https://app.gradient.network/")
+    time.sleep(random.randint(6, 13))
 
-    time.sleep(random.randint(6,13))
-
-    logging.info('Entering credentials...')
-    email_input =driver.find_element(By.XPATH, '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')
+    # Enter login credentials
+    logging.info(f"{LogColors.OKBLUE}🔑 Entering email...{LogColors.RESET}")
+    email_input = driver.find_element(By.XPATH, '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')
     email_input.send_keys(email)
 
+    time.sleep(random.randint(6, 13))
 
-    time.sleep(random.randint(6,13))
+    logging.info(f"{LogColors.OKBLUE}🔒 Entering password...{LogColors.RESET}")
     password_input = driver.find_element(By.XPATH, '//input[@placeholder="Enter Password"]')
     password_input.send_keys(password)
 
-
+    # Click login button
+    logging.info(f"{LogColors.OKGREEN}➡️ Clicking login button...{LogColors.RESET}")
     button = driver.find_element(By.CSS_SELECTOR, 'button.custom-flying-button.bg-black.text-white')
     button.click()
 
+    time.sleep(random.randint(6, 13))
 
-    time.sleep(random.randint(6,13))
-
+    # Handle window switching
+    logging.info(f"{LogColors.WARNING}🔀 Switching back to main window...{LogColors.RESET}")
     window_handles = driver.window_handles
-
     driver.switch_to.window(window_handles[0])
-    
 
-    logging.info('Logged in successfully.')
-    logging.info('Earning...')
+    logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Gradient Node is running...{LogColors.RESET}")
+    logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
+
 
 def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
     """
