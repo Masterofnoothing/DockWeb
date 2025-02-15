@@ -140,15 +140,14 @@ def runTeno(driver,email,password,extension_id):
         connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
 
         # Check if the button text is "Connect"
-        if connect_button.text.strip().lower() == "connect node":
+        logging.info(f"Button says {connect_button.text}")
+        while connect_button.text.strip().lower() == "connect node":
             logging.info('Clicking the connect button...')
             connect_button.click()
-        else:
-            logging.info('Button does not say "Connect". Skipping click.')
 
+
+            time.sleep(random.randint(1,30))
         logging.info('Earning...')
-
-        time.sleep(random.randint(1,30))
 
         return
     time.sleep(random.randint(3,7))
@@ -264,61 +263,81 @@ def runDawn(driver, email, password, extension_id):
     logging.info("Earning started.")
 
 
-def runGrass(driver,email,password,extension_id):
-     # Navigate to a webpage
-        logging.info('Navigating to the grass...')
-        time.sleep(5)
-        clearMemory(driver)
-        driver.get("https://app.getgrass.io/dashboard")
-        time.sleep(random.randint(7,15))
-        if driver.current_url == "https://app.getgrass.io/dashboard":
-            logging.info("Already logged in skipping login")
-            time.sleep(random.randint(10,50))
-            logging.info('Accessing extension settings page...')
-            driver.get(f'chrome-extension://{extension_id}/index.html')
-            time.sleep(random.randint(3,7))
+import logging
+import random
+import time
+from selenium.webdriver.common.by import By
 
-            logging.info('Clicking the extension button...')
-            button = driver.find_element(By.XPATH, "//button")
-            button.click()
+# Define ANSI escape codes for colors
+class LogColors:
+    HEADER = "\033[95m"  # Purple
+    OKBLUE = "\033[94m"  # Blue
+    OKGREEN = "\033[92m"  # Green
+    WARNING = "\033[93m"  # Yellow
+    FAIL = "\033[91m"  # Red
+    RESET = "\033[0m"    # Reset color
 
-            logging.info('Logged in successfully.')
-            handle_cookie_banner(driver)
-            logging.info('Earning...')
+def runGrass(driver, email, password, extension_id):
+    logging.info(f"{LogColors.HEADER}🚀 Starting Grass automation...{LogColors.RESET}")
 
-            time.sleep(random.randint(1,30))
+    # Navigate to the dashboard
+    logging.info(f"{LogColors.OKBLUE}🌍 Navigating to Grass dashboard...{LogColors.RESET}")
+    time.sleep(5)
+    clearMemory(driver)
+    driver.get("https://app.getgrass.io/dashboard")
+    time.sleep(random.randint(7, 15))
 
-            return
-        driver.get("https://app.getgrass.io/")
-        time.sleep(random.randint(3,7))
-        handle_cookie_banner(driver)
+    if driver.current_url == "https://app.getgrass.io/dashboard":
+        logging.info(f"{LogColors.OKGREEN}✅ Already logged in. Skipping login process.{LogColors.RESET}")
+        time.sleep(random.randint(10, 50))
 
-        logging.info('Entering credentials...')
-        username = driver.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')
-        username.send_keys(email)
-        passwd = driver.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
-        passwd.send_keys(password)
-               
-        
-        logging.info('Clicking the login button...')
-        button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/button")
-        button.click()
-        logging.info('Waiting response...')
-
-        time.sleep(random.randint(10,50))
-        logging.info('Accessing extension settings page...')
+        logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
         driver.get(f'chrome-extension://{extension_id}/index.html')
-        time.sleep(random.randint(3,7))
+        time.sleep(random.randint(3, 7))
 
-        logging.info('Clicking the extension button...')
+        logging.info(f"{LogColors.OKGREEN}🚀 Activating extension...{LogColors.RESET}")
         button = driver.find_element(By.XPATH, "//button")
         button.click()
 
-        logging.info('Logged in successfully.')
+        logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Grass is running...{LogColors.RESET}")
         handle_cookie_banner(driver)
-        logging.info('Earning...')
+        logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
 
-        time.sleep(random.randint(1,30))
+        time.sleep(random.randint(1, 30))
+        return
+
+    # Login process
+    logging.info(f"{LogColors.WARNING}🔄 Redirecting to login page...{LogColors.RESET}")
+    driver.get("https://app.getgrass.io/")
+    time.sleep(random.randint(3, 7))
+    handle_cookie_banner(driver)
+
+    logging.info(f"{LogColors.OKBLUE}🔑 Entering login credentials...{LogColors.RESET}")
+    username = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')
+    username.send_keys(email)
+    passwd = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
+    passwd.send_keys(password)
+
+    logging.info(f"{LogColors.OKGREEN}➡️ Clicking login button...{LogColors.RESET}")
+    button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/button")
+    button.click()
+
+    logging.info(f"{LogColors.WARNING}⏳ Waiting for login response...{LogColors.RESET}")
+    time.sleep(random.randint(10, 50))
+
+    logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
+    driver.get(f'chrome-extension://{extension_id}/index.html')
+    time.sleep(random.randint(3, 7))
+
+    logging.info(f"{LogColors.OKGREEN}🚀 Activating extension...{LogColors.RESET}")
+    button = driver.find_element(By.XPATH, "//button")
+    button.click()
+
+    logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Grass is running...{LogColors.RESET}")
+    handle_cookie_banner(driver)
+    logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
+
+    time.sleep(random.randint(1, 30))
 
 
 def runNodepay():
