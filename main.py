@@ -13,9 +13,17 @@ import threading
 import time
 import os
 import requests
+import json
+import zipfile
 
-
-
+# Define ANSI escape codes for colors
+class LogColors:
+    HEADER = "\033[95m"  # Purple
+    OKBLUE = "\033[94m"  # Blue
+    OKGREEN = "\033[92m"  # Green
+    WARNING = "\033[93m"  # Yellow
+    FAIL = "\033[91m"  # Red
+    RESET = "\033[0m"    # Reset color
 
 app = Flask(__name__)
 log = logging.getLogger('werkzeug')
@@ -53,7 +61,7 @@ def submit():
 
 
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp",
-                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teno":"emcclcoaglgcpoognfiggmhnhgabppkm"}
+                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm"}
 docker = os.getenv("ISDOCKER")
 
 if not docker:
@@ -113,102 +121,156 @@ def askCapcha():
     logging.info("CAPTCHA entered.")
     return captcha_text
 
-def runTeno(driver,email,password,extension_id):
-     # Navigate to a webpage
-    logging.info('Navigating to Teno Website...')
+
+def download_from_provider_website(driver, extension_id, crx_download_url):
+    """
+    Download extension from the provider website.
+
+    Args:
+        driver (webdriver): The WebDriver instance.
+        extension_id (str): The ID of the extension.
+        crx_download_url (str): The URL to download the extension.
+
+    Returns:
+        str: The path to the downloaded CRX file.
+
+    Raises:
+        FileNotFoundError: If the CRX file is not found after extraction.
+        requests.RequestException: If there is an error during the download process.
+    """
+    logging.info('Using the defined URL to download the extension CRX file from the provider website...')
+    logging.info('Fetching the latest release information...')
+    driver.get(crx_download_url)
+    response_text = driver.execute_script("return document.body.textContent")
+    response_json = json.loads(response_text)
+    
+    data = response_json['result']['data']
+    version = data['version']
+    linux_download_url = data['links']['linux']
+    
+    logging.info(f'Downloading the latest release version {version}...')
+    response = requests.get(linux_download_url, verify=False)
+    response.raise_for_status()
+    
+    zip_file_path = os.path.join(f"{extension_id}.zip")
+    with open(zip_file_path, 'wb') as zip_file:
+        zip_file.write(response.content)
+        logging.info(f"Downloaded extension to {zip_file_path}")
+    
+    logging.info(f"Extracting the extension from {zip_file_path}")
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall('./')
+    
+    for root, dirs, files in os.walk('./'):
+        for file in files:
+            if file.endswith('.crx'):
+                logging.info(f"Found CRX file: {file}")
+                return os.path.join(root, file)
+    
+    raise FileNotFoundError('CRX file not found in the extracted folder.')
+
+
+
+def runTeneo(driver, email, password, extension_id):
+    logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     time.sleep(5)
     driver.get("https://dashboard.teneo.pro/dashboard")
-    time.sleep(random.randint(7,15))
+    time.sleep(random.randint(7, 15))
+    
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
-        logging.info("Already logged in skipping login")
-        time.sleep(random.randint(10,50))
-        logging.info('Accessing extension settings page...')
+        logging.info(f"{LogColors.OKBLUE}✅ Already logged in, skipping login{LogColors.RESET}")
+        time.sleep(random.randint(10, 50))
+        logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
         driver.get(f'chrome-extension://{extension_id}/index.html')
-        time.sleep(random.randint(3,7))
-
-        #if extension acts weird 
+        time.sleep(random.randint(3, 7))
+        
         try:
-            jionButton = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/button")
-            jionButton.click()
-            time.sleep(random.randint(3,7))
-            
+            joinButton = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/button")
+            joinButton.click()
+            time.sleep(random.randint(3, 7))
             driver.get(f'chrome-extension://{extension_id}/index.html')
-            time.sleep(random.randint(3,7))
+            time.sleep(random.randint(3, 7))
         except:
             pass
         
-        connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
-
-        # Check if the button text is "Connect"
-        logging.info(f"Button says {connect_button.text}")
+        connect_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")
+        logging.info(f"{LogColors.WARNING}🔍 Button says {connect_button.text}{LogColors.RESET}")
         while connect_button.text.strip().lower() == "connect node":
-            logging.info('Ooooooooooo....Maybe I should click it.....')
+            logging.info(f"{LogColors.OKBLUE}🤔 Ooooooooooo....Maybe I should click it.....{LogColors.RESET}")
             connect_button.click()
-            logging.info("I just clicked it!!!")
-
-
-            time.sleep(random.randint(1,30))
-        logging.info('Earning...')
-
+            logging.info(f"{LogColors.OKGREEN}👌 I just clicked it!!!{LogColors.RESET}")
+            time.sleep(random.randint(1, 30))
+        
+        logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
         return
-    time.sleep(random.randint(3,7))
-
-    logging.info('Entering credentials...')
-    email_element = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/div[1]/input")
-    email_element.send_keys(email)
-    password_element = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/div[2]/div/input")
-    password_element.send_keys(password)
-            
     
-    logging.info('Clicking the login button...')
-    login_button = driver.find_element(By.XPATH,"/html/body/div/main/div/div/div[2]/div/div/button")
+    time.sleep(random.randint(3, 7))
+    logging.info(f"{LogColors.HEADER}🔑 Entering credentials...{LogColors.RESET}")
+    email_element = driver.find_element(By.XPATH, "/html/body/div/main/div/div/div[2]/div/div/div[1]/input")
+    email_element.send_keys(email)
+    password_element = driver.find_element(By.XPATH, "/html/body/div/main/div/div/div[2]/div/div/div[2]/div/input")
+    password_element.send_keys(password)
+    
+    logging.info(f"{LogColors.OKBLUE}🖱️ Clicking the login button...{LogColors.RESET}")
+    login_button = driver.find_element(By.XPATH, "/html/body/div/main/div/div/div[2]/div/div/button")
     login_button.click()
-    logging.info('Waiting response...')
-
-    time.sleep(random.randint(10,50))
-    logging.info('Accessing extension settings page...')
-
+    logging.info(f"{LogColors.WARNING}⏳ Waiting for response...{LogColors.RESET}")
+    
+    time.sleep(random.randint(10, 50))
+    logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
     driver.get(f'chrome-extension://{extension_id}/index.html')
-    time.sleep(random.randint(3,7))
-
-    jionButton = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/button")
-    jionButton.click()
-    time.sleep(random.randint(3,7))
-
+    time.sleep(random.randint(3, 7))
+    
+    joinButton = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/button")
+    joinButton.click()
+    time.sleep(random.randint(3, 7))
+    
     driver.get(f'chrome-extension://{extension_id}/index.html')
-    time.sleep(random.randint(3,7))
-    logging.info('Clicking the connect button...')
-    connect_button = driver.find_element(By.XPATH,"/html/body/div/div/div/div[2]/div[1]/div/button[1]")
-    # Check if the button text is "Connect"
+    time.sleep(random.randint(3, 7))
+    logging.info(f"{LogColors.OKGREEN}💪 Clicking the connect button...{LogColors.RESET}")
+    connect_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")
+    
     if connect_button.text.strip().lower() == "connect node":
-        logging.info('Clicking the connect button...')
+        logging.info(f"{LogColors.OKBLUE}🤝 Clicking the connect button...{LogColors.RESET}")
         connect_button.click()
     else:
-        logging.info('Button does not say "Connect". Skipping click.')
-        logging.info('Earning...')
-
-    time.sleep(random.randint(1,30))
-
+        logging.info(f"{LogColors.FAIL}👀 Button does not say 'Connect'. Skipping click.{LogColors.RESET}")
+        logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
+    
+    time.sleep(random.randint(1, 30))
     return
+
 
 def runDawn(driver, email, password, extension_id):
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
     time.sleep(random.randint(7,15))
-    logging.info("Navigating to Dawn website...")
+    logging.info(f"{LogColors.HEADER}🚀 Navigating to Dawn website...{LogColors.RESET}")
     try:
-        # Switch to the alert
         alert = driver.switch_to.alert
-
-        # Accept the alert
+        alert_text = alert.text.lower()
         alert.accept()
-        time.sleep(0.99)
-        alert = driver.switch_to.alert
+        if "expired" not in alert_text:
+            time.sleep(2.99)
+            alert = driver.switch_to.alert
+            alert.accept()
 
-        # Accept the alert
-        alert.accept()
-    except:
-        logging.info("Already Logged in Skipping")
-        logging.info("earning")
+    except Exception as e:
+        logging.info(f"{LogColors.OKBLUE}✅ Already Logged in, Skipping...{LogColors.RESET}")
+        refresh_button = driver.find_element(By.ID, "refreshpoint")
+        refresh_button.click()
+        time.sleep(random.randint(10,15))
+        
+        element = driver.find_element(By.ID, "dawnbalance")
+        text = element.text
+        logging.info(f"{LogColors.OKGREEN}💰 Your Dawn Balance is {text}{LogColors.RESET}")
+
+        time.sleep(random.randint(10,15))
+        
+        element = driver.find_element(By.CLASS_NAME, "connecttext")
+        text = element.text
+        if text.lower() == "connected":
+            logging.info(f"{LogColors.OKGREEN}🔗 Dawn is connected{LogColors.RESET}")
+            logging.info(f"{LogColors.HEADER}💸 Earning started...{LogColors.RESET}")
         return
     time.sleep(5)
 
@@ -226,13 +288,10 @@ def runDawn(driver, email, password, extension_id):
     capElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/div/input")
     capchaImg = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/img")
 
-
-    # Start Flask server in a separate thread
     flask_thread = threading.Thread(target=lambda: runFlask(), daemon=True)
     flask_thread.start()
-
     
-    logging.info("Solve the CAPTCHA at http://localhost:5000")
+    logging.info(f"{LogColors.WARNING}⚠️ Solve the CAPTCHA at http://localhost:5000{LogColors.RESET}")
 
     solved = False
     while not solved:
@@ -246,37 +305,20 @@ def runDawn(driver, email, password, extension_id):
         capElement.clear()
         capElement.send_keys(askCapcha())
         time.sleep(random.randint(3, 7))
-        login_button = driver.find_element(By.XPATH,"/html/body/div[1]/div[2]/div[2]/form/div/div/div[4]/a/button")
+        login_button = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[4]/a/button")
         login_button.click()
         time.sleep(random.randint(3, 7))
 
         if driver.current_url != f"chrome-extension://{extension_id}/pages/signin.html":
             solved = True
-            logging.info("Capcha Solved Sucessfully")
+            logging.info(f"{LogColors.OKGREEN}✅ CAPTCHA Solved Successfully!{LogColors.RESET}")
         else:
-            logging.info("Incorrect Capcha")
+            logging.info(f"{LogColors.FAIL}❌ Incorrect CAPTCHA, retrying...{LogColors.RESET}")
 
-    # Fina a way to stop the flask thread
-
-    
     time.sleep(random.randint(5,12))
+    logging.info(f"{LogColors.HEADER}💸 Earning started.{LogColors.RESET}")
 
-    logging.info("Earning started.")
 
-
-import logging
-import random
-import time
-from selenium.webdriver.common.by import By
-
-# Define ANSI escape codes for colors
-class LogColors:
-    HEADER = "\033[95m"  # Purple
-    OKBLUE = "\033[94m"  # Blue
-    OKGREEN = "\033[92m"  # Green
-    WARNING = "\033[93m"  # Yellow
-    FAIL = "\033[91m"  # Red
-    RESET = "\033[0m"    # Reset color
 
 def runGrass(driver, email, password, extension_id):
     logging.info(f"{LogColors.HEADER}🚀  Starting Grass automation...{LogColors.RESET}")
@@ -442,7 +484,7 @@ def run():
 
     
     # Set Chrome user data directory
-    user_data_dir = os.path.join(os.getcwd(), "chrome_user_data")
+    user_data_dir =  os.path.join(os.getcwd(), "chrome_user_data")
     os.makedirs(user_data_dir, exist_ok=True)
 
     chrome_options = webdriver.ChromeOptions()
@@ -465,8 +507,8 @@ def run():
     dawn_email = os.getenv('DAWN_EMAIL', all_email)
     dawn_password = os.getenv('DAWN_PASS', all_pass)
 
-    teno_email = os.getenv('TENO_EMAIL', all_email)
-    teno_password = os.getenv('TENO_PASS', all_pass)
+    teneo_email = os.getenv('Teneo_EMAIL', all_email)
+    teneo_password = os.getenv('Teneo_PASS', all_pass)
     if docker == 'true':
 
 
@@ -494,10 +536,10 @@ def run():
             download_extension(extensionIds['dawn'])
             id = extensionIds['dawn']
             chrome_options.add_extension(f"./{id}.crx")
-        if teno_email and teno_password:
-            logging.info("Installing Teno Community Node....")
-            download_extension(extensionIds['teno'])
-            id = extensionIds['teno']
+        if teneo_email and teneo_password:
+            logging.info("Installing Teneo Community Node....")
+            download_extension(extensionIds['teneo'])
+            id = extensionIds['teneo']
             chrome_options.add_extension(f"./{id}.crx")
         driver = webdriver.Chrome(options=chrome_options)
 
@@ -514,13 +556,13 @@ def run():
         if  gradient_email and  gradient_password:
             logging.info('Installing Gradient')
             download_extension(extensionIds['gradient'],driver)
+        if teneo_email and teneo_password:
+            logging.info("Installing teneo Community Node....")
+            download_extension(extensionIds['teneo'],driver)
 
         if  dawn_email and  dawn_password:
             logging.info('Installing Dawn')
             download_extension(extensionIds['dawn'],driver)
-        if teno_email and teno_password:
-            logging.info("Installing Teno Community Node....")
-            download_extension(extensionIds['teno'],driver)
          
 
     # Enable CDP
@@ -540,14 +582,15 @@ def run():
         if  grass_email and  grass_password:
             runGrass(driver,grass_email,grass_password,extensionIds['grass'])
         clearMemory(driver)
+        if teneo_email and teneo_password:
+            runTeneo(driver,teneo_email,teneo_password,extensionIds['teneo'])
+        clearMemory(driver)
         if dawn_email and dawn_password:
             runDawn(driver,dawn_email,dawn_password,extensionIds['dawn'])
             
-        clearMemory(driver)
-        if teno_email and teno_password:
-            runTeno(driver,teno_email,teno_password,extensionIds['teno'])
 
         clearMemory(driver)
+        
         #Loading a simple webpage to save resources as gradient node website is really heavy 
         #I could use this as a way to see advertisement lol 
         #if u are reading this and want your website instead of example.com contact me XD 
@@ -557,7 +600,6 @@ def run():
         
     except Exception as e:
         logging.error(f'An error occurred: {e}')
-        driver.quit()
 
     while True:
         try:
