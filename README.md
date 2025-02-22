@@ -59,11 +59,11 @@ docker run -d \
 | DAWN_PASS      | Password for Dawn extension                    |
 | TENO_EMAIL     | Email for Teno                                  |
 | TENO_PASS     | Password for Teno                                |
-| -v ./chrome_user_data:/chrome_user_data | Maps Chrome user data for session persistence |
+| -v ./chrome_user_data:/app/chrome_user_data | Maps Chrome user data for session persistence |
 | -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
 ### **Persistent Data Management**
-To ensure session continuity across container restarts, DockWeb includes a volume mount for Chrome user data by default. This maps `./chrome_user_data` from the host system to `/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
+To ensure session continuity across container restarts, DockWeb includes a volume mount for Chrome user data by default. This maps `./chrome_user_data` from the host system to `/app/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
 
 ---
 
