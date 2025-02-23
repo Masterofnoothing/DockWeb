@@ -507,8 +507,8 @@ def run():
     dawn_email = os.getenv('DAWN_EMAIL', all_email)
     dawn_password = os.getenv('DAWN_PASS', all_pass)
 
-    teneo_email = os.getenv('Teneo_EMAIL', all_email)
-    teneo_password = os.getenv('Teneo_PASS', all_pass)
+    teneo_email = os.getenv('TENEO_EMAIL', all_email)
+    teneo_password = os.getenv('TENEO_PASS', all_pass)
     if docker == 'true':
 
 
