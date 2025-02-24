@@ -172,9 +172,11 @@ def download_from_provider_website(driver, extension_id, crx_download_url):
 
 
 def runTeneo(driver, email, password, extension_id):
+    logging.error("Teneo is disable for the meantime")
+    return
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     time.sleep(5)
-    driver.get("https://dashboard.teneo.pro/dashboard")
+    driver.get("https://dashboard.teneo.pro")
     time.sleep(random.randint(7, 15))
     
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
