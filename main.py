@@ -61,7 +61,7 @@ def submit():
 
 
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp",
-                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm"}
+                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm","grass-node":""}
 docker = os.getenv("ISDOCKER")
 
 if not docker:
@@ -122,6 +122,11 @@ def askCapcha():
     return captcha_text
 
 
+def add_cooki(driver, cooki):
+    driver.execute_script(f"localStorage.setItem('{cooki['key']}', '{cooki['value']}');")
+
+
+
 def download_from_provider_website(driver, extension_id, crx_download_url):
     """
     Download extension from the provider website.
@@ -173,7 +178,6 @@ def download_from_provider_website(driver, extension_id, crx_download_url):
 
 def runTeneo(driver, email, password, extension_id):
     logging.error("Teneo is disable for the meantime")
-    return
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     time.sleep(5)
     driver.get("https://dashboard.teneo.pro")
@@ -385,8 +389,33 @@ def runGrass(driver, email, password, extension_id):
     time.sleep(random.randint(1, 30))
 
 
-def runNodepay():
-    pass
+def runNodepay(driver,cookie):
+
+    driver.get("https://app.nodepay.ai/")
+    time.sleep(random.randint(1,3))
+    add_cooki(driver,{"key": "np_token", "value": cookie})
+    add_cooki(driver,{"key": "np_webapp_token", "value": cookie})
+    driver.refresh()
+    time.sleep(random.randint(8,13))
+    if driver.current_url != "https://app.nodepay.ai/dashboard":
+        logging.error("Nodepay cookie seems to be expired")
+        return
+    extension_id = extensionIds['nodepay']
+    driver.get(f'chrome-extension://{extension_id}/index.html')
+    time.sleep(random.randint(8,13))
+    connected = element = driver.find_element(By.XPATH, "//span[contains(@class, 'font-bold') and contains(@class, 'text-green')]")
+    if connected.text.strip().lower() == "connected":
+        logging.info("The extension is connected :D")
+
+    price_element = driver.find_element(By.XPATH, "//span[contains(@class, 'text-16px') and contains(@class, 'font-bold') and contains(@class, 'mr-1') and contains(@class, 'truncate')]")
+
+    # Get the text content
+    price_text = price_element.text.strip()
+    
+    logging.info(f"Your nodepay season earnings is {price_text}")
+    return
+
+
 
 def runGradientNode(driver, email, password):
     logging.info(f"{LogColors.HEADER}🚀 Starting Gradient Node automation...{LogColors.RESET}")
@@ -511,6 +540,9 @@ def run():
 
     teneo_email = os.getenv('TENEO_EMAIL', all_email)
     teneo_password = os.getenv('TENEO_PASS', all_pass)
+
+    np_cooki = os.getenv('NP_COOKI') or os.getenv("NP_COOKIE")
+
     if docker == 'true':
 
 
@@ -543,6 +575,13 @@ def run():
             download_extension(extensionIds['teneo'])
             id = extensionIds['teneo']
             chrome_options.add_extension(f"./{id}.crx")
+        if np_cooki:
+            logging.info("Installing Teneo Community Node....")
+            download_extension(extensionIds['nodepay'])
+            id = extensionIds['nodepay']
+            chrome_options.add_extension(f"./{id}.crx")
+
+
         driver = webdriver.Chrome(options=chrome_options)
 
     else:
@@ -558,13 +597,19 @@ def run():
         if  gradient_email and  gradient_password:
             logging.info('Installing Gradient')
             download_extension(extensionIds['gradient'],driver)
+
+        if np_cooki:
+            logging.info("Installing nodepay")
+            download_extension(extensionIds['nodepay'],driver)
         if teneo_email and teneo_password:
+
             logging.info("Installing teneo Community Node....")
             download_extension(extensionIds['teneo'],driver)
 
         if  dawn_email and  dawn_password:
             logging.info('Installing Dawn')
             download_extension(extensionIds['dawn'],driver)
+
          
 
     # Enable CDP
@@ -584,6 +629,9 @@ def run():
         if  grass_email and  grass_password:
             runGrass(driver,grass_email,grass_password,extensionIds['grass'])
         clearMemory(driver)
+
+        if np_cooki:
+            runNodepay(driver,np_cooki)
         if teneo_email and teneo_password:
             runTeneo(driver,teneo_email,teneo_password,extensionIds['teneo'])
         clearMemory(driver)
