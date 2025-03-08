@@ -81,7 +81,7 @@ def submit():
 
 
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp",
-                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm","grass-node":""}
+                "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm","grass-node":"lkbnfiajjmbhnfledhphioinpickokdi"}
 docker = os.getenv("ISDOCKER")
 
 if not docker:
@@ -145,54 +145,6 @@ def askCapcha():
 def add_cooki(driver, cooki):
     driver.execute_script(f"localStorage.setItem('{cooki['key']}', '{cooki['value']}');")
 
-
-
-def download_from_provider_website(driver, extension_id, crx_download_url):
-    """
-    Download extension from the provider website.
-
-    Args:
-        driver (webdriver): The WebDriver instance.
-        extension_id (str): The ID of the extension.
-        crx_download_url (str): The URL to download the extension.
-
-    Returns:
-        str: The path to the downloaded CRX file.
-
-    Raises:
-        FileNotFoundError: If the CRX file is not found after extraction.
-        requests.RequestException: If there is an error during the download process.
-    """
-    logging.info('Using the defined URL to download the extension CRX file from the provider website...')
-    logging.info('Fetching the latest release information...')
-    driver.get(crx_download_url)
-    response_text = driver.execute_script("return document.body.textContent")
-    response_json = json.loads(response_text)
-    
-    data = response_json['result']['data']
-    version = data['version']
-    linux_download_url = data['links']['linux']
-    
-    logging.info(f'Downloading the latest release version {version}...')
-    response = requests.get(linux_download_url, verify=False)
-    response.raise_for_status()
-    
-    zip_file_path = os.path.join(f"{extension_id}.zip")
-    with open(zip_file_path, 'wb') as zip_file:
-        zip_file.write(response.content)
-        logging.info(f"Downloaded extension to {zip_file_path}")
-    
-    logging.info(f"Extracting the extension from {zip_file_path}")
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall('./')
-    
-    for root, dirs, files in os.walk('./'):
-        for file in files:
-            if file.endswith('.crx'):
-                logging.info(f"Found CRX file: {file}")
-                return os.path.join(root, file)
-    
-    raise FileNotFoundError('CRX file not found in the extracted folder.')
 
 
 
