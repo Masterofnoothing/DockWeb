@@ -2,6 +2,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import random
 import time
 import logging
@@ -15,6 +16,25 @@ import os
 import requests
 import json
 import zipfile
+
+import capsolver
+def send_discord_webhook(webhook_url, title, log_results, color=16711680):
+    """
+    Sends an embedded message to a Discord webhook with log results as fields.
+    """
+    embed = {
+        "title": title,
+        "color": color,
+        "fields": [{"name": key, "value": str(value), "inline": False} for key, value in log_results.items()]
+    }
+    
+    data = {"embeds": [embed]}
+    
+    response = requests.post(webhook_url, json=data)
+    if response.status_code == 204:
+        print("Message sent successfully!")
+    else:
+        print(f"Failed to send message: {response.status_code}, {response.text}")
 
 # Define ANSI escape codes for colors
 class LogColors:
@@ -176,11 +196,17 @@ def download_from_provider_website(driver, extension_id, crx_download_url):
 
 
 
-def runTeneo(driver, email, password, extension_id):
-    logging.error("Teneo is disable for the meantime")
+def runTeneo(driver, email=None, password=None, extension_id=None,cookie=None):
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     time.sleep(5)
     driver.get("https://dashboard.teneo.pro")
+    if cookie:
+        add_cooki(driver,{"key": "accessToken", "value": cookie})
+        driver.refresh()
+        time.sleep(random.randint(8,13))
+        if driver.current_url != "https://dashboard.teneo.pro/dashboard":
+            logging.error("Nodepay cookie seems to be expired")
+            return
     time.sleep(random.randint(7, 15))
     
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
@@ -210,6 +236,8 @@ def runTeneo(driver, email, password, extension_id):
         logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
         return
     
+    logging.info("PasswordLogin wont work")
+    return
     time.sleep(random.randint(3, 7))
     logging.info(f"{LogColors.HEADER}🔑 Entering credentials...{LogColors.RESET}")
     email_element = driver.find_element(By.XPATH, "/html/body/div/main/div/div/div[2]/div/div/div[1]/input")
@@ -389,21 +417,71 @@ def runGrass(driver, email, password, extension_id):
     time.sleep(random.randint(1, 30))
 
 
-def runNodepay(driver,cookie):
+def runNodepay(driver,cookie=None,email=None,passwd=None,api_key = None):
 
-    driver.get("https://app.nodepay.ai/")
-    time.sleep(random.randint(1,3))
-    add_cooki(driver,{"key": "np_token", "value": cookie})
-    add_cooki(driver,{"key": "np_webapp_token", "value": cookie})
-    driver.refresh()
-    time.sleep(random.randint(8,13))
+    driver.get("https://app.nodepay.ai/dashboard")
+    time.sleep(random.randint(1,3)*5)
+    if cookie and driver.current_url != "https://app.nodepay.ai/dashboard":
+        add_cooki(driver,{"key": "np_token", "value": cookie})
+        add_cooki(driver,{"key": "np_webapp_token", "value": cookie})
+        driver.refresh()
+        driver.get("https://app.nodepay.ai/dashboard")
+        time.sleep(random.randint(8,13))
+        if driver.current_url != "https://app.nodepay.ai/dashboard":
+            logging.error("Nodepay cookie seems to be expired")
+            return
     if driver.current_url != "https://app.nodepay.ai/dashboard":
-        logging.error("Nodepay cookie seems to be expired")
-        return
+            # Load the inject.js file content
+            with open("./static/cloud.js", "r", encoding="utf-8") as f:
+                inject_js_content = f.read()
+            
+                driver.execute_cdp_cmd(
+                    "Page.addScriptToEvaluateOnNewDocument",
+                    {"source": inject_js_content}
+                )
+
+            driver.refresh()
+            
+            site_key = "0x4AAAAAAAx1CyDNL8zOEPe7"
+            task_id = capsolver.create_turnstile_task(api_key,site_key,"https://app.nodepay.ai/login")
+            #Nodepay Login Logic
+            input_element = driver.find_element(By.XPATH, "//input[@id='basic_user']")
+
+            # Perform actions (e.g., sending keys)
+            input_element.send_keys(email)
+
+            password_element = driver.find_element(By.XPATH, "//input[@id='basic_password']")
+            password_element.send_keys(passwd)
+
+
+            solved_token = None
+            while not solved_token:
+                solved_token = capsolver.get_turnstile_response(task_id,api_key)
+                time.sleep(0.99)
+
+
+            # **Step 3: Inject the Token into the Form**
+            driver.execute_script("""
+                const captchaInput = document.querySelector('[name="cf-turnstile-response"]');
+                if (captchaInput) {
+                    captchaInput.value = arguments[0];
+                    captchaInput.dispatchEvent(new Event("input", { bubbles: true }));
+                    captchaInput.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+                if (window.turnstile && typeof window.tsCallback === "function") {
+                    window.tsCallback(arguments[0]);
+                }
+            """, solved_token)
+
+            button_element = driver.find_element(By.XPATH, "//button[span[text()='Access My Account']]")
+            button_element.click()
+
+            time.sleep(random.randint(3,7)*30)
+    logging.info("Log In sucessful")
     extension_id = extensionIds['nodepay']
     driver.get(f'chrome-extension://{extension_id}/index.html')
     time.sleep(random.randint(8,13))
-    connected = element = driver.find_element(By.XPATH, "//span[contains(@class, 'font-bold') and contains(@class, 'text-green')]")
+    connected = driver.find_element(By.XPATH, "//span[contains(@class, 'font-bold') and contains(@class, 'text-green')]")
     if connected.text.strip().lower() == "connected":
         logging.info("The extension is connected :D")
 
@@ -529,7 +607,7 @@ def run():
     all_pass = os.getenv('ALL_PASS')
 
     # Fetch individual credentials, falling back to all_email/all_pass if not set
-    grass_email = os.getenv('GRASS_USER', all_email)
+    grass_email = os.getenv('GRASS_USER') or os.getenv('GRASS_USER', all_email)
     grass_password = os.getenv('GRASS_PASS', all_pass)
 
     gradient_email = os.getenv('GRADIENT_EMAIL', all_email)
@@ -538,10 +616,18 @@ def run():
     dawn_email = os.getenv('DAWN_EMAIL', all_email)
     dawn_password = os.getenv('DAWN_PASS', all_pass)
 
+    teneo_cooki = os.getenv('TENEO_COOKI') or os.getenv("TENEO_COOKIE")
+
     teneo_email = os.getenv('TENEO_EMAIL', all_email)
     teneo_password = os.getenv('TENEO_PASS', all_pass)
 
-    np_cooki = os.getenv('NP_COOKI') or os.getenv("NP_COOKIE")
+    np_cooki = os.getenv('NP_COOKI') or os.getenv("NP_COOKIE") or os.getenv("NODEPAY_COOKIE")
+
+    np_email = os.getenv("NODEPAY_EMAIL",all_email)
+    np_password = os.getenv("NODEPAY_PASSWORD",all_pass)
+
+    twoCapApiKey = os.getenv("API_KEY")
+    webhook_url = os.getenv("DISCORD_WEBHOOK") or os.getenv("WEBHOOK")
 
     if docker == 'true':
 
@@ -576,7 +662,7 @@ def run():
             id = extensionIds['teneo']
             chrome_options.add_extension(f"./{id}.crx")
         if np_cooki:
-            logging.info("Installing Teneo Community Node....")
+            logging.info("Installing Nodepay Node....")
             download_extension(extensionIds['nodepay'])
             id = extensionIds['nodepay']
             chrome_options.add_extension(f"./{id}.crx")
@@ -598,10 +684,10 @@ def run():
             logging.info('Installing Gradient')
             download_extension(extensionIds['gradient'],driver)
 
-        if np_cooki:
+        if (np_cooki) or (twoCapApiKey and np_email and np_password):
             logging.info("Installing nodepay")
             download_extension(extensionIds['nodepay'],driver)
-        if teneo_email and teneo_password:
+        if (teneo_email and teneo_password and twoCapApiKey) or teneo_cooki:
 
             logging.info("Installing teneo Community Node....")
             download_extension(extensionIds['teneo'],driver)
@@ -622,34 +708,51 @@ def run():
 
 
 
+    results = {}
+
+    def safe_execute(app_key, func, *args, **kwargs):
+        try:
+            results[app_key] = func(*args, **kwargs)
+        except Exception as e:
+            logging.error(f'Error in {app_key}: {e}')
+            results[app_key] = f'Error: {e}'
+
     try:
-        if  gradient_email and  gradient_password:
-            runGradientNode(driver,gradient_email,gradient_password)
+        if gradient_email and gradient_password:
+            safe_execute("gradient", runGradientNode, driver, gradient_email, gradient_password)
         clearMemory(driver)
-        if  grass_email and  grass_password:
-            runGrass(driver,grass_email,grass_password,extensionIds['grass'])
+        if grass_email and grass_password:
+            safe_execute("grass", runGrass, driver, grass_email, grass_password, extensionIds['grass'])
         clearMemory(driver)
 
         if np_cooki:
-            runNodepay(driver,np_cooki)
-        if teneo_email and teneo_password:
-            runTeneo(driver,teneo_email,teneo_password,extensionIds['teneo'])
+            safe_execute("nodepay", runNodepay, driver, cookie=np_cooki)
+        elif np_email and np_password and twoCapApiKey:
+            safe_execute("nodepay", runNodepay, driver, passwd=np_password, email=np_email, api_key=twoCapApiKey)
         clearMemory(driver)
+    
+        if teneo_cooki:
+            safe_execute("teneo", runTeneo, driver, extension_id=extensionIds['teneo'],cookie=teneo_cooki)
+        elif teneo_email and teneo_password:
+            safe_execute("teneo", runTeneo, driver, teneo_email, teneo_password, extensionIds['teneo'])
+        clearMemory(driver)
+
         if dawn_email and dawn_password:
-            runDawn(driver,dawn_email,dawn_password,extensionIds['dawn'])
-            
-
+            safe_execute("dawn", runDawn, driver, dawn_email, dawn_password, extensionIds['dawn'])
         clearMemory(driver)
-        
-        #Loading a simple webpage to save resources as gradient node website is really heavy 
-        #I could use this as a way to see advertisement lol 
-        #if u are reading this and want your website instead of example.com contact me XD 
 
-        driver.get("https://example.com")
+        # Loading a simple webpage to save resources
+        try:
+            driver.get("https://example.com")
+        except Exception as e:
+            logging.error(f'Error loading example.com: {e}')
 
-        
+        if webhook_url:
+            send_discord_webhook(webhook_url,"DockwebStatus",results)
+
     except Exception as e:
-        logging.error(f'An error occurred: {e}')
+        logging.error(f'A critical error occurred: {e}')
+
 
     while True:
         try:
