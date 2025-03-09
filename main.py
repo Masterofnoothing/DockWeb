@@ -567,8 +567,8 @@ def run():
     os.makedirs(user_data_dir, exist_ok=True)
 
     chrome_options = webdriver.ChromeOptions()
-    #chrome_options.add_argument(f"user-data-dir={user_data_dir}")
-    #chrome_options.add_argument("--profile-directory=Default")
+    chrome_options.add_argument(f"user-data-dir={user_data_dir}")
+    chrome_options.add_argument("--profile-directory=Default")
     
 
     # Read variables from the OS env
