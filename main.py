@@ -18,6 +18,17 @@ import json
 import zipfile
 
 import capsolver
+
+
+def get_chromedriver_version():
+    try:
+        result = subprocess.run(['chromedriver', '--version'], capture_output=True, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        logging.error(f"Could not get ChromeDriver version: {e}")
+        return "Unknown version"
+    
+
 def send_discord_webhook(webhook_url, title, log_results, color=16711680):
     """
     Sends an embedded message to a Discord webhook with log results as fields.
@@ -149,6 +160,8 @@ def add_cooki(driver, cooki):
 
 
 def runTeneo(driver, email=None, password=None, extension_id=None,cookie=None):
+
+    driver.set_window_size(1024, driver.get_window_size()['height'])
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     time.sleep(5)
     driver.get("https://dashboard.teneo.pro")
@@ -371,6 +384,8 @@ def runGrass(driver, email, password, extension_id):
 
 def runNodepay(driver,cookie=None,email=None,passwd=None,api_key = None):
 
+    driver.set_window_size(1920, driver.get_window_size()['height'])
+
     driver.get("https://app.nodepay.ai/dashboard")
     time.sleep(random.randint(1,3)*5)
     if cookie and driver.current_url != "https://app.nodepay.ai/dashboard":
@@ -379,8 +394,11 @@ def runNodepay(driver,cookie=None,email=None,passwd=None,api_key = None):
         driver.refresh()
         driver.get("https://app.nodepay.ai/dashboard")
         time.sleep(random.randint(8,13))
+        
         if driver.current_url != "https://app.nodepay.ai/dashboard":
             logging.error("Nodepay cookie seems to be expired")
+            driver.save_screenshot("nodepay_login_failed.png")
+
             return
     if driver.current_url != "https://app.nodepay.ai/dashboard":
             # Load the inject.js file content
@@ -549,8 +567,8 @@ def run():
     os.makedirs(user_data_dir, exist_ok=True)
 
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument(f"user-data-dir={user_data_dir}")
-    chrome_options.add_argument("--profile-directory=Default")
+    #chrome_options.add_argument(f"user-data-dir={user_data_dir}")
+    #chrome_options.add_argument("--profile-directory=Default")
     
 
     # Read variables from the OS env
@@ -589,6 +607,9 @@ def run():
         chrome_options.add_argument('--headless=new')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+
+        chromedriver_version = get_chromedriver_version()
+        logging.info(f'Using {chromedriver_version}')
 
         # Check if credentials are provided
         if  grass_email and  grass_password:
