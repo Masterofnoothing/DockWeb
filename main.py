@@ -603,7 +603,7 @@ def run():
     twoCapApiKey = os.getenv("API_KEY")
     webhook_url = os.getenv("DISCORD_WEBHOOK") or os.getenv("WEBHOOK")
 
-    delay_multiplier = int(os.getenv("DELAY")) or 1
+    delay_multiplier = int((os.getenv("DELAY")) or 1)
 
     if docker == 'true':
 
