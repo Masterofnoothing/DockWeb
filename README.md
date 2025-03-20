@@ -41,9 +41,10 @@ docker run -d \
 > **Tip** This is too difficult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
 
 ### **Changelog**  
-- Fixed issues with the Teno Community node not connecting.  
-- Improved logging for grass and gradient.  
-- If you encounter any bugs, please report them in the issues section.  
+- Added support of nodepay yes I finally added support for nodepay but it's not something I am really proud of or I wanted to be but it's here.
+- Readded support for teneo 
+- Woking on discord weebhooks uwu
+- if you find any bugs create an issue :D Happy Earning!!!
 
 ### **Supported Environment Variables**
 
@@ -57,8 +58,8 @@ docker run -d \
 | GRADIENT_PASS  | Password for GradientNode extension            |
 | DAWN_EMAIL     | Email for Dawn extension                       |
 | DAWN_PASS      | Password for Dawn extension                    |
-| TENO_EMAIL     | Email for Teno                                  |
-| TENO_PASS     | Password for Teno                                |
+| TENO_COOKIE     | Cookie for Teno refer                                  |
+|NP_COOKIE        | Cookie for nodepay refer                         |
 | -v ./chrome_user_data:/app/chrome_user_data | Maps Chrome user data for session persistence |
 | -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
@@ -98,7 +99,6 @@ docker stop <container_id>
 ## **Key Features**
 
 - **Multi-Extension Support:** Run multiple web extensions in a single container.
-- **Simple Setup:** Minimal configuration required for deployment.
 - **Resource Optimization:** Reduces system overhead by consolidating extensions.
 - **Scalability:** Designed to accommodate new extensions as they emerge.
 - **Cross-Platform Compatibility:** Works on any Docker-supported system.
@@ -110,13 +110,15 @@ docker stop <container_id>
 ### **Is DockWeb lightweight?**
 Currently, resource usage is as follows:
 - **CPU:** ~0.01 - 1%
-- **RAM:** ~400 MB (With 3 apps)
+- **RAM:** ~522 MB (With 5 apps)
 
 Future updates will focus on further optimizations to reduce resource consumption.
 
 ### **Do these extensions generate revenue?**
 As of **Feb 9, 2025**, only Grass and Nodepay have successfully distributed an airdrop. Other platforms claim to offer payouts in the future. Users should exercise discretion and only participate if they trust the respective platforms.
 
+### **Will you add more apps?**
+Yes...........well it all depends on app and demand for the app I dont wanna spam dockweb with trash apps if you want an app added you can suggest it in issues, I only add the apps that I personally will use cause I am not a fan of coping years for something that may or may not pay you.
 ---
 
 ## **License**
@@ -132,3 +134,17 @@ This software is distributed under the [GNU General Public License (GPL-3.0)](ht
 Special thanks to [MRColorR](https://github.com/MRColorR) for contributions to this project.
 
 If you find this project helpful, consider using the referral links provided. Your support helps fund the development of more free and open-source projects. ❤️
+---
+
+## **My Opinions and Vision on the Project**  
+
+As mentioned previously, I am not a fan of waiting years for something that may or may not pay off. So, DockWeb follows a "set it and forget it" ideology, and I will try my best to keep things that way.  
+
+You may ask, why use DockWeb at all? Why not simply install the extension directly on your web browser? Well, yeah, you can, but I am personally skeptical of running unknown extensions in my personal browser. So, I created DockWeb—and the best part is, it's free to use! 😃 But remember, it's a personal choice. If you find running apps on your main browser hassle-free, you can always go that route.  
+
+### **Nodepay and Other Captchas**  
+
+Nodepay and Teneo use Cloudflare captcha, which is really hard to bypass. I tried many methods, but all ended in a dead end. So for now, you have to manually enter the cookies. 😕  
+
+But if I find a way to enable auto-login, I’ll be sure to add it! and yeah prs are always welcome :D 
+

@@ -7,16 +7,14 @@ import random
 import time
 import logging
 import subprocess
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from flask import Flask, render_template, request, send_file
 import threading
 import time
 import os
 import requests
-import json
-import zipfile
-
 import capsolver
 
 
@@ -159,49 +157,47 @@ def add_cooki(driver, cooki):
 
 
 
-def runTeneo(driver, email=None, password=None, extension_id=None,cookie=None):
-
+def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, delay_multiplier=1.0):
     driver.set_window_size(1024, driver.get_window_size()['height'])
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
-    time.sleep(5)
     driver.get("https://dashboard.teneo.pro")
+    
+    wait = WebDriverWait(driver, 15 * delay_multiplier)
+    
     if cookie:
-        add_cooki(driver,{"key": "accessToken", "value": cookie})
+        add_cooki(driver, {"key": "accessToken", "value": cookie})
         driver.refresh()
-        time.sleep(random.randint(8,13))
-        if driver.current_url != "https://dashboard.teneo.pro/dashboard":
+        try:
+            wait.until(EC.url_contains("/dashboard"))
+        except:
             logging.error("Nodepay cookie seems to be expired")
             return
-    time.sleep(random.randint(7, 15))
-    
+
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
         logging.info(f"{LogColors.OKBLUE}✅ Already logged in, skipping login{LogColors.RESET}")
-        time.sleep(random.randint(10, 50))
         logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
         driver.get(f'chrome-extension://{extension_id}/index.html')
-        time.sleep(random.randint(3, 7))
         
         try:
-            joinButton = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/button")
+            joinButton = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/div[2]/button")))
             joinButton.click()
-            time.sleep(random.randint(3, 7))
             driver.get(f'chrome-extension://{extension_id}/index.html')
-            time.sleep(random.randint(3, 7))
         except:
             pass
-        
-        connect_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")
+
+        connect_button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")))
         logging.info(f"{LogColors.WARNING}🔍 Button says {connect_button.text}{LogColors.RESET}")
+        
         while connect_button.text.strip().lower() == "connect node":
             logging.info(f"{LogColors.OKBLUE}🤔 Ooooooooooo....Maybe I should click it.....{LogColors.RESET}")
             connect_button.click()
             logging.info(f"{LogColors.OKGREEN}👌 I just clicked it!!!{LogColors.RESET}")
-            time.sleep(random.randint(1, 30))
-        
+            WebDriverWait(driver, random.randint(1, 30) * delay_multiplier).until(EC.staleness_of(connect_button))
+
         logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
         return
-    
-    logging.info("PasswordLogin wont work")
+
+    logging.info("Password login won't work")
     return
     time.sleep(random.randint(3, 7))
     logging.info(f"{LogColors.HEADER}🔑 Entering credentials...{LogColors.RESET}")
@@ -240,56 +236,45 @@ def runTeneo(driver, email=None, password=None, extension_id=None,cookie=None):
     return
 
 
-def runDawn(driver, email, password, extension_id):
+def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
-    time.sleep(random.randint(7,15))
+    wait = WebDriverWait(driver, 15 * delay_multiplier)
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Dawn website...{LogColors.RESET}")
+
     try:
-        alert = driver.switch_to.alert
+        alert = wait.until(EC.alert_is_present())
         alert_text = alert.text.lower()
         alert.accept()
         if "expired" not in alert_text:
-            time.sleep(2.99)
-            alert = driver.switch_to.alert
-            alert.accept()
-
-    except Exception as e:
+            wait.until(EC.alert_is_present()).accept()
+    except:
         logging.info(f"{LogColors.OKBLUE}✅ Already Logged in, Skipping...{LogColors.RESET}")
-        refresh_button = driver.find_element(By.ID, "refreshpoint")
+        refresh_button = wait.until(EC.element_to_be_clickable((By.ID, "refreshpoint")))
         refresh_button.click()
-        time.sleep(random.randint(10,15))
         
-        element = driver.find_element(By.ID, "dawnbalance")
-        text = element.text
-        logging.info(f"{LogColors.OKGREEN}💰 Your Dawn Balance is {text}{LogColors.RESET}")
+        element = wait.until(EC.visibility_of_element_located((By.ID, "dawnbalance")))
+        logging.info(f"{LogColors.OKGREEN}💰 Your Dawn Balance is {element.text}{LogColors.RESET}")
 
-        time.sleep(random.randint(10,15))
-        
-        element = driver.find_element(By.CLASS_NAME, "connecttext")
-        text = element.text
-        if text.lower() == "connected":
+        element = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "connecttext")))
+        if element.text.lower() == "connected":
             logging.info(f"{LogColors.OKGREEN}🔗 Dawn is connected{LogColors.RESET}")
             logging.info(f"{LogColors.HEADER}💸 Earning started...{LogColors.RESET}")
         return
-    time.sleep(5)
 
     driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
-    time.sleep(random.randint(3, 7))
-
-    emailElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[1]/div[1]/input")
-    emailElement.send_keys(email)
-    time.sleep(random.randint(3, 7))
-
-    passElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[1]/div[2]/input")
-    passElement.send_keys(password)
-    time.sleep(random.randint(3, 7))
-
-    capElement = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/div/input")
-    capchaImg = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[3]/div/img")
-
-    flask_thread = threading.Thread(target=lambda: runFlask(), daemon=True)
-    flask_thread.start()
     
+    emailElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='email']")))
+    emailElement.send_keys(email)
+    
+    passElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']")))
+    passElement.send_keys(password)
+
+    capElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='captcha']/div/input")))
+    capchaImg = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='captcha']/div/img")))
+
+    flask_thread = threading.Thread(target=runFlask, daemon=True)
+    flask_thread.start()
+
     logging.info(f"{LogColors.WARNING}⚠️ Solve the CAPTCHA at http://localhost:5000{LogColors.RESET}")
 
     solved = False
@@ -297,221 +282,216 @@ def runDawn(driver, email, password, extension_id):
         try:
             os.remove(CAPTCHA_IMAGE_PATH)
             os.remove(CAPTCHA_RESULT_PATH)
-        except:
+        except FileNotFoundError:
             pass
+        
         capchaImg.screenshot(CAPTCHA_IMAGE_PATH)
         capElement.click()
         capElement.clear()
         capElement.send_keys(askCapcha())
-        time.sleep(random.randint(3, 7))
-        login_button = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[2]/form/div/div/div[4]/a/button")
-        login_button.click()
-        time.sleep(random.randint(3, 7))
 
-        if driver.current_url != f"chrome-extension://{extension_id}/pages/signin.html":
+        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//a/button[contains(text(), 'Login')]")))
+        login_button.click()
+        
+        try:
+            wait.until(EC.url_changes(driver.current_url))
             solved = True
             logging.info(f"{LogColors.OKGREEN}✅ CAPTCHA Solved Successfully!{LogColors.RESET}")
-        else:
+        except:
             logging.info(f"{LogColors.FAIL}❌ Incorrect CAPTCHA, retrying...{LogColors.RESET}")
 
-    time.sleep(random.randint(5,12))
     logging.info(f"{LogColors.HEADER}💸 Earning started.{LogColors.RESET}")
-
-
-
-def runGrass(driver, email, password, extension_id):
-    logging.info(f"{LogColors.HEADER}🚀  Starting Grass automation...{LogColors.RESET}")
-
-    # Navigate to the dashboard
-    logging.info(f"{LogColors.OKBLUE}🌍  Navigating to Grass dashboard...{LogColors.RESET}")
-    time.sleep(5)
+def runGrass(driver, email, password, extension_id, delay_multiplier=1):
+    logging.info(f"🚀 Starting Grass automation...")
+    
+    logging.info(f"🌍 Navigating to Grass dashboard...")
     clearMemory(driver)
     driver.get("https://app.getgrass.io/dashboard")
-    time.sleep(random.randint(7, 15))
-
+    WebDriverWait(driver, random.randint(7, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
+    
     if driver.current_url == "https://app.getgrass.io/dashboard":
-        logging.info(f"{LogColors.OKGREEN}✅  Already logged in. Skipping login process.{LogColors.RESET}")
-        time.sleep(random.randint(10, 50))
-
-        logging.info(f"{LogColors.WARNING}🔧  Accessing extension settings...{LogColors.RESET}")
+        logging.info(f"✅ Already logged in. Skipping login process.")
+        WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        
+        logging.info(f"🔧 Accessing extension settings...")
         driver.get(f'chrome-extension://{extension_id}/index.html')
-        time.sleep(random.randint(3, 7))
-
-        logging.info(f"{LogColors.OKGREEN}🚀  Activating extension...{LogColors.RESET}")
+        WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
+        
+        logging.info(f"🚀 Activating extension...")
         button = driver.find_element(By.XPATH, "//button")
         button.click()
-
-        logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Grass is running...{LogColors.RESET}")
+        
+        logging.info(f"🎉 Successfully logged in! Grass is running...")
         handle_cookie_banner(driver)
-        logging.info(f"{LogColors.OKBLUE}💰  Earning in progress...{LogColors.RESET}")
-
-        time.sleep(random.randint(1, 30))
+        logging.info(f"💰 Earning in progress...")
         return
-
-    # Login process
-    logging.info(f"{LogColors.WARNING}🔄  Redirecting to login page...{LogColors.RESET}")
+    
+    logging.info(f"🔄 Redirecting to login page...")
     driver.get("https://app.getgrass.io/")
-    time.sleep(random.randint(3, 7))
+    WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
     handle_cookie_banner(driver)
-
-    logging.info(f"{LogColors.OKBLUE}🔑  Entering login credentials...{LogColors.RESET}")
-    username = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')
+    
+    logging.info(f"🔑 Entering login credentials...")
+    username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, 
+        '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')))
     username.send_keys(email)
-    passwd = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
+    
+    passwd = driver.find_element(By.XPATH, 
+        '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
     passwd.send_keys(password)
-
-    logging.info(f"{LogColors.OKGREEN}➡️ Clicking login button...{LogColors.RESET}")
+    
+    logging.info(f"➡️ Clicking login button...")
     button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/button")
     button.click()
-
-    logging.info(f"{LogColors.WARNING}⏳  Waiting for login response...{LogColors.RESET}")
-    time.sleep(random.randint(10, 50))
-
-    logging.info(f"{LogColors.WARNING}🔧  Accessing extension settings...{LogColors.RESET}")
+    
+    logging.info(f"⏳ Waiting for login response...")
+    WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.url_contains("dashboard"))
+    
+    logging.info(f"🔧 Accessing extension settings...")
     driver.get(f'chrome-extension://{extension_id}/index.html')
-    time.sleep(random.randint(3, 7))
-
-    logging.info(f"{LogColors.OKGREEN}🚀  Activating extension...{LogColors.RESET}")
+    WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
+    
+    logging.info(f"🚀 Activating extension...")
     button = driver.find_element(By.XPATH, "//button")
     button.click()
-
-    logging.info(f"{LogColors.OKGREEN}🎉  Successfully logged in! Grass is running...{LogColors.RESET}")
+    
+    logging.info(f"🎉 Successfully logged in! Grass is running...")
     handle_cookie_banner(driver)
-    logging.info(f"{LogColors.OKBLUE}💰  Earning in progress...{LogColors.RESET}")
-
-    time.sleep(random.randint(1, 30))
-
-
-def runNodepay(driver,cookie=None,email=None,passwd=None,api_key = None):
-
+    logging.info(f"💰 Earning in progress...")
+def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay_multiplier=1):
     driver.set_window_size(1920, driver.get_window_size()['height'])
-
     driver.get("https://app.nodepay.ai/dashboard")
-    time.sleep(random.randint(1,3)*5)
+    WebDriverWait(driver, random.randint(9, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
+    
     if cookie and driver.current_url != "https://app.nodepay.ai/dashboard":
-        add_cooki(driver,{"key": "np_token", "value": cookie})
-        add_cooki(driver,{"key": "np_webapp_token", "value": cookie})
+        add_cooki(driver, {"key": "np_token", "value": cookie})
+        add_cooki(driver, {"key": "np_webapp_token", "value": cookie})
         driver.refresh()
         driver.get("https://app.nodepay.ai/dashboard")
-        time.sleep(random.randint(8,13))
+        WebDriverWait(driver, random.randint(8, 13) * delay_multiplier).until(EC.url_contains("dashboard"))
         
         if driver.current_url != "https://app.nodepay.ai/dashboard":
             logging.error("Nodepay cookie seems to be expired")
             driver.save_screenshot("nodepay_login_failed.png")
-
             return
+    
     if driver.current_url != "https://app.nodepay.ai/dashboard":
-            # Load the inject.js file content
-            with open("./static/cloud.js", "r", encoding="utf-8") as f:
-                inject_js_content = f.read()
-            
-                driver.execute_cdp_cmd(
-                    "Page.addScriptToEvaluateOnNewDocument",
-                    {"source": inject_js_content}
-                )
-
-            driver.refresh()
-            
-            site_key = "0x4AAAAAAAx1CyDNL8zOEPe7"
-            task_id = capsolver.create_turnstile_task(api_key,site_key,"https://app.nodepay.ai/login")
-            #Nodepay Login Logic
-            input_element = driver.find_element(By.XPATH, "//input[@id='basic_user']")
-
-            # Perform actions (e.g., sending keys)
-            input_element.send_keys(email)
-
-            password_element = driver.find_element(By.XPATH, "//input[@id='basic_password']")
-            password_element.send_keys(passwd)
-
-
-            solved_token = None
-            while not solved_token:
-                solved_token = capsolver.get_turnstile_response(task_id,api_key)
-                time.sleep(0.99)
-
-
-            # **Step 3: Inject the Token into the Form**
-            driver.execute_script("""
-                const captchaInput = document.querySelector('[name="cf-turnstile-response"]');
-                if (captchaInput) {
-                    captchaInput.value = arguments[0];
-                    captchaInput.dispatchEvent(new Event("input", { bubbles: true }));
-                    captchaInput.dispatchEvent(new Event("change", { bubbles: true }));
-                }
-                if (window.turnstile && typeof window.tsCallback === "function") {
-                    window.tsCallback(arguments[0]);
-                }
-            """, solved_token)
-
-            button_element = driver.find_element(By.XPATH, "//button[span[text()='Access My Account']]")
-            button_element.click()
-
-            time.sleep(random.randint(3,7)*30)
-    logging.info("Log In sucessful")
+        with open("./static/cloud.js", "r", encoding="utf-8") as f:
+            inject_js_content = f.read()
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": inject_js_content})
+        driver.refresh()
+        
+        site_key = "0x4AAAAAAAx1CyDNL8zOEPe7"
+        task_id = capsolver.create_turnstile_task(api_key, site_key, "https://app.nodepay.ai/login")
+        
+        input_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//input[@id='basic_user']"))
+        )
+        input_element.send_keys(email)
+        
+        password_element = driver.find_element(By.XPATH, "//input[@id='basic_password']")
+        password_element.send_keys(passwd)
+        
+        solved_token = None
+        while not solved_token:
+            solved_token = capsolver.get_turnstile_response(task_id, api_key)
+            WebDriverWait(driver, 1 * delay_multiplier).until(lambda d: solved_token is not None)
+        
+        driver.execute_script("""
+            const captchaInput = document.querySelector('[name="cf-turnstile-response"]');
+            if (captchaInput) {
+                captchaInput.value = arguments[0];
+                captchaInput.dispatchEvent(new Event("input", { bubbles: true }));
+                captchaInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+            if (window.turnstile && typeof window.tsCallback === "function") {
+                window.tsCallback(arguments[0]);
+            }
+        """, solved_token)
+        
+        button_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[span[text()='Access My Account']]")
+        ))
+        button_element.click()
+        
+        WebDriverWait(driver, random.randint(3, 7) * 30 * delay_multiplier).until(
+            EC.url_contains("dashboard")
+        )
+    
+    logging.info("Log In successful")
     extension_id = extensionIds['nodepay']
     driver.get(f'chrome-extension://{extension_id}/index.html')
-    time.sleep(random.randint(8,13))
+    WebDriverWait(driver, random.randint(8, 13) * delay_multiplier).until(
+        EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'font-bold') and contains(@class, 'text-green')]")
+    ))
+    
     connected = driver.find_element(By.XPATH, "//span[contains(@class, 'font-bold') and contains(@class, 'text-green')]")
     if connected.text.strip().lower() == "connected":
         logging.info("The extension is connected :D")
-
-    price_element = driver.find_element(By.XPATH, "//span[contains(@class, 'text-16px') and contains(@class, 'font-bold') and contains(@class, 'mr-1') and contains(@class, 'truncate')]")
-
-    # Get the text content
+    
+    price_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'text-16px') and contains(@class, 'font-bold') and contains(@class, 'mr-1') and contains(@class, 'truncate')]")
+    ))
     price_text = price_element.text.strip()
     
     logging.info(f"Your nodepay season earnings is {price_text}")
     return
 
 
+def runGradientNode(driver, email, password, delay_multiplier=1):
+    """
+    Automates the login and navigation process for Gradient Node.
 
-def runGradientNode(driver, email, password):
-    logging.info(f"{LogColors.HEADER}🚀 Starting Gradient Node automation...{LogColors.RESET}")
+    Args:
+        driver: Selenium WebDriver instance.
+        email: User's email address.
+        password: User's password.
+        delay_multiplier: Multiplier for random sleep intervals.
+    """
+    wait = WebDriverWait(driver, 20)  # Set a max wait time of 20 seconds
 
-    # Navigate to Gradient dashboard
-    logging.info(f"{LogColors.OKBLUE}🌍 Visiting Gradient Network dashboard...{LogColors.RESET}")
+    logging.info(f"🚀 Starting Gradient Node automation...")
+    logging.info(f"🌍 Visiting Gradient Network dashboard...")
     clearMemory(driver)
 
     driver.get("https://app.gradient.network/dashboard")
-    time.sleep(random.randint(7, 15))
+    wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
     if driver.current_url == "https://app.gradient.network/dashboard":
-        logging.info(f"{LogColors.OKGREEN}✅ Already logged in. Skipping login process.{LogColors.RESET}")
+        logging.info(f"✅ Already logged in. Skipping login process.")
 
-        logging.info(f"{LogColors.WARNING}🔧 Accessing extension settings...{LogColors.RESET}")
+        logging.info(f"🔧 Accessing extension settings...")
         driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
         return
 
-    logging.info(f"{LogColors.WARNING}🔄 Redirecting to login page...{LogColors.RESET}")
+    logging.info(f"🔄 Redirecting to login page...")
     driver.get("https://app.gradient.network/")
-    time.sleep(random.randint(6, 13))
+    wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-    # Enter login credentials
-    logging.info(f"{LogColors.OKBLUE}🔑 Entering email...{LogColors.RESET}")
-    email_input = driver.find_element(By.XPATH, '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')
+    logging.info(f"🔑 Entering email...")
+    email_input = wait.until(EC.presence_of_element_located((By.XPATH, 
+        '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')))
     email_input.send_keys(email)
 
-    time.sleep(random.randint(6, 13))
-
-    logging.info(f"{LogColors.OKBLUE}🔒 Entering password...{LogColors.RESET}")
-    password_input = driver.find_element(By.XPATH, '//input[@placeholder="Enter Password"]')
+    logging.info(f"🔒 Entering password...")
+    password_input = wait.until(EC.presence_of_element_located((By.XPATH, 
+        '//input[@placeholder="Enter Password"]')))
     password_input.send_keys(password)
 
-    # Click login button
-    logging.info(f"{LogColors.OKGREEN}➡️ Clicking login button...{LogColors.RESET}")
-    button = driver.find_element(By.CSS_SELECTOR, 'button.custom-flying-button.bg-black.text-white')
+    logging.info(f"➡️ Clicking login button...")
+    button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 
+        'button.custom-flying-button.bg-black.text-white')))
     button.click()
 
-    time.sleep(random.randint(6, 13))
+    logging.info(f"🔀 Waiting for login to complete...")
+    wait.until(EC.url_contains("dashboard"))
 
-    # Handle window switching
-    logging.info(f"{LogColors.WARNING}🔀 Switching back to main window...{LogColors.RESET}")
+    logging.info(f"🔀 Switching back to main window...")
     window_handles = driver.window_handles
     driver.switch_to.window(window_handles[0])
 
-    logging.info(f"{LogColors.OKGREEN}🎉 Successfully logged in! Gradient Node is running...{LogColors.RESET}")
-    logging.info(f"{LogColors.OKBLUE}💰 Earning in progress...{LogColors.RESET}")
-
+    logging.info(f"🎉 Successfully logged in! Gradient Node is running...")
+    logging.info(f"💰 Earning in progress...")
 
 def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
     """
@@ -553,7 +533,34 @@ def run():
     setup_logging()
     logging.info('Starting the script...')
 
+    branding = f'''{LogColors.OKBLUE}
+                $$$$$$$\                      $$\                               $$\       
+                $$  __$$\                     $$ |                              $$ |      
+                $$ |  $$ | $$$$$$\   $$$$$$$\ $$ |  $$\ $$\  $$\  $$\  $$$$$$\  $$$$$$$\  
+                $$ |  $$ |$$  __$$\ $$  _____|$$ | $$  |$$ | $$ | $$ |$$  __$$\ $$  __$$\ 
+                $$ |  $$ |$$ /  $$ |$$ /      $$$$$$  / $$ | $$ | $$ |$$$$$$$$ |$$ |  $$ |
+                $$ |  $$ |$$ |  $$ |$$ |      $$  _$$<  $$ | $$ | $$ |$$   ____|$$ |  $$ |
+                $$$$$$$  |\$$$$$$  |\$$$$$$$\ $$ | \$$\ \$$$$$\$$$$  |\$$$$$$$\ $$$$$$$  |
+                \_______/  \______/  \_______|\__|  \__| \_____\____/  \_______|\_______/ {LogColors.RESET}'''
     
+    logging.info(branding)
+
+
+    user_data_dir = os.path.join(os.getcwd(), "chrome_user_data")
+    os.makedirs(user_data_dir, exist_ok=True)
+
+
+    found = False
+    for filename in os.listdir(user_data_dir):
+        if filename.strip().lower() == "singletonlock": #strip and lower
+            actual_path = os.path.join(user_data_dir, filename)
+            os.remove(actual_path)
+            logging.info(f"Removed {filename} file.")
+            found = True
+            break
+
+    if not found:
+        logging.info("SingletonLock file not found")
     chrome_options = Options()
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
@@ -562,9 +569,6 @@ def run():
     chrome_options.add_experimental_option("prefs", prefs)
 
     
-    # Set Chrome user data directory
-    user_data_dir =  os.path.join(os.getcwd(), "chrome_user_data")
-    os.makedirs(user_data_dir, exist_ok=True)
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
@@ -598,6 +602,8 @@ def run():
 
     twoCapApiKey = os.getenv("API_KEY")
     webhook_url = os.getenv("DISCORD_WEBHOOK") or os.getenv("WEBHOOK")
+
+    delay_multiplier = int(os.getenv("DELAY")) or 1
 
     if docker == 'true':
 
@@ -691,15 +697,16 @@ def run():
             results[app_key] = f'Error: {e}'
 
     try:
+        logging.info(f"Delay Multiplier is {delay_multiplier}")
         if gradient_email and gradient_password:
-            safe_execute("gradient", runGradientNode, driver, gradient_email, gradient_password)
+            safe_execute("gradient", runGradientNode, driver, gradient_email, gradient_password,delay_multiplier)
         clearMemory(driver)
         if grass_email and grass_password:
-            safe_execute("grass", runGrass, driver, grass_email, grass_password, extensionIds['grass'])
+            safe_execute("grass", runGrass, driver, grass_email, grass_password, extensionIds['grass'],delay_multiplier)
         clearMemory(driver)
 
         if np_cooki:
-            safe_execute("nodepay", runNodepay, driver, cookie=np_cooki)
+            safe_execute("nodepay", runNodepay, driver, cookie=np_cooki,delay_multiplier=delay_multiplier)
         elif np_email and np_password and twoCapApiKey:
             safe_execute("nodepay", runNodepay, driver, passwd=np_password, email=np_email, api_key=twoCapApiKey)
         clearMemory(driver)
@@ -707,11 +714,11 @@ def run():
         if teneo_cooki:
             safe_execute("teneo", runTeneo, driver, extension_id=extensionIds['teneo'],cookie=teneo_cooki)
         elif teneo_email and teneo_password:
-            safe_execute("teneo", runTeneo, driver, teneo_email, teneo_password, extensionIds['teneo'])
+            safe_execute("teneo", runTeneo, driver, teneo_email, teneo_password, extensionIds['teneo'],delay_multiplier=delay_multiplier)
         clearMemory(driver)
 
         if dawn_email and dawn_password:
-            safe_execute("dawn", runDawn, driver, dawn_email, dawn_password, extensionIds['dawn'])
+            safe_execute("dawn", runDawn, driver, dawn_email, dawn_password, extensionIds['dawn'],delay_multiplier=delay_multiplier)
         clearMemory(driver)
 
         # Loading a simple webpage to save resources
