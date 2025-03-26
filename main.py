@@ -166,6 +166,7 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
     
     if cookie:
         add_cooki(driver, {"key": "accessToken", "value": cookie})
+        add_cooki(driver,{"key":"auth","value":json.dumps({"state":{"accessToken":cookie,"signupToken":None,"passwordResetTimeout":{"email":"","state":None,"timestamp":0,"duration":0}},"version":0})})
         driver.refresh()
         try:
             time.sleep(15)
@@ -174,7 +175,6 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
             logging.error("Nodepay cookie seems to be expired")
             return
         
-    add_cooki(driver,{"key":"auth","value":json.dumps({"state":{"accessToken":cookie,"signupToken":None,"passwordResetTimeout":{"email":"","state":None,"timestamp":0,"duration":0}},"version":0})})
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
         logging.info(f"{LogColors.OKBLUE}✅ Already logged in, skipping login{LogColors.RESET}")
         logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
