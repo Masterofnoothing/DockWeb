@@ -1,7 +1,7 @@
-# NodePay Cookie Extractor  
+# Teneo Cookie Extractor  
 
 ## ⚠️ Disclaimer  
-**This script extracts your NodePay authentication token.**  
+**This script extracts your Teneo authentication token.**  
 - **Do not share it with anyone.**  
 - **Do not execute random scripts in your browser.**  
 - **Anyone with this token can log into your account without needing your password.**  
@@ -12,7 +12,7 @@
 
 ### Step 1: Open Developer Console  
 1. Open your web browser.  
-2. Go to the NodePay website and log in to your account.  
+2. Go to the Teneo website and log in to your account.  
 3. Open the Developer Console:  
    - **Chrome/Edge:** Press `F12` or `Ctrl + Shift + I`, then go to the **Console** tab.  
    - **Firefox:** Press `F12` or `Ctrl + Shift + K`.  
@@ -31,12 +31,12 @@ Copy and paste the following JavaScript code into the **Console** and press **En
  */
 
 function printNpToken() {
-    const npToken = localStorage.getItem("np_token");
+    const npToken = localStorage.getItem("accessToken");
 
     if (npToken) {
-        console.log("np_token:", npToken);
+        console.log("accessToken:", npToken);
     } else {
-        console.log("np_token not found in Local Storage.");
+        console.log("accessToken not found in Local Storage.  Log in again");
     }
 }
 

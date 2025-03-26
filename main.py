@@ -16,7 +16,7 @@ import time
 import os
 import requests
 import capsolver
-
+import json
 
 def get_chromedriver_version():
     try:
@@ -168,11 +168,13 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
         add_cooki(driver, {"key": "accessToken", "value": cookie})
         driver.refresh()
         try:
+            time.sleep(15)
             wait.until(EC.url_contains("/dashboard"))
         except:
             logging.error("Nodepay cookie seems to be expired")
             return
-
+        
+    add_cooki(driver,{"key":"auth","value":json.dumps({"state":{"accessToken":cookie,"signupToken":None,"passwordResetTimeout":{"email":"","state":None,"timestamp":0,"duration":0}},"version":0})})
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
         logging.info(f"{LogColors.OKBLUE}✅ Already logged in, skipping login{LogColors.RESET}")
         logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
@@ -196,8 +198,8 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
 
         logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
         return
-
-    logging.info("Password login won't work")
+    logging.info(driver.current_url)
+    logging.info("Login Failed")
     return
     time.sleep(random.randint(3, 7))
     logging.info(f"{LogColors.HEADER}🔑 Entering credentials...{LogColors.RESET}")
@@ -712,7 +714,7 @@ def run():
         clearMemory(driver)
     
         if teneo_cooki:
-            safe_execute("teneo", runTeneo, driver, extension_id=extensionIds['teneo'],cookie=teneo_cooki)
+            safe_execute("teneo", runTeneo, driver, extension_id=extensionIds['teneo'],cookie=teneo_cooki,delay_multiplier=delay_multiplier)
         elif teneo_email and teneo_password:
             safe_execute("teneo", runTeneo, driver, teneo_email, teneo_password, extensionIds['teneo'],delay_multiplier=delay_multiplier)
         clearMemory(driver)

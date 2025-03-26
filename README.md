@@ -58,8 +58,8 @@ docker run -d \
 | GRADIENT_PASS  | Password for GradientNode extension            |
 | DAWN_EMAIL     | Email for Dawn extension                       |
 | DAWN_PASS      | Password for Dawn extension                    |
-| TENO_COOKIE     | Cookie for Teno refer                                  |
-|NP_COOKIE        | Cookie for nodepay refer                         |
+| TENO_COOKIE     | Cookie for Teno refer [nodepay_setup](Instructions/nodepay.md)                                  |
+|NP_COOKIE        | Cookie for nodepay refer [teneo_setup](Instructions/teneo.md)                    |
 | -v ./chrome_user_data:/app/chrome_user_data | Maps Chrome user data for session persistence |
 | -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
