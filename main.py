@@ -194,7 +194,9 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
             logging.info(f"{LogColors.OKBLUE}🤔 Ooooooooooo....Maybe I should click it.....{LogColors.RESET}")
             connect_button.click()
             logging.info(f"{LogColors.OKGREEN}👌 I just clicked it!!!{LogColors.RESET}")
-            WebDriverWait(driver, random.randint(1, 30) * delay_multiplier).until(EC.staleness_of(connect_button))
+            time.sleep(random.randint(3,10)*delay_multiplier)
+            if "disconnect" in connect_button.text.lower():
+                logging.info(f"{LogColors.OKGREEN}Connected Sucessfully{LogColors.RESET}")
 
         logging.info(f"{LogColors.OKGREEN}💸 Earning...{LogColors.RESET}")
         return
