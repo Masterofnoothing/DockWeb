@@ -363,8 +363,9 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     handle_cookie_banner(driver)
     logging.info(f"💰 Earning in progress...")
 def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay_multiplier=1):
-    driver.set_window_size(1920, driver.get_window_size()['height'])
+    driver.set_window_size(1024, driver.get_window_size()['height'])
     driver.get("https://app.nodepay.ai/dashboard")
+    time.sleep(random.randint(9,16))
     WebDriverWait(driver, random.randint(9, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
     
     if cookie and driver.current_url != "https://app.nodepay.ai/dashboard":
@@ -372,6 +373,7 @@ def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay
         add_cooki(driver, {"key": "np_webapp_token", "value": cookie})
         driver.refresh()
         driver.get("https://app.nodepay.ai/dashboard")
+        time.sleep(random.randint(9,16))
         WebDriverWait(driver, random.randint(8, 13) * delay_multiplier).until(EC.url_contains("dashboard"))
         
         if driver.current_url != "https://app.nodepay.ai/dashboard":
@@ -553,7 +555,7 @@ def run():
     user_data_dir = os.path.join(os.getcwd(), "chrome_user_data")
     os.makedirs(user_data_dir, exist_ok=True)
 
-
+    #Delete the singleton locked file
     found = False
     for filename in os.listdir(user_data_dir):
         if filename.strip().lower() == "singletonlock": #strip and lower
@@ -565,15 +567,20 @@ def run():
 
     if not found:
         logging.info("SingletonLock file not found")
+
+
+
     chrome_options = Options()
+
+    #Prevent Images from loading to save resources 
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
-
-
     prefs = {"profile.managed_default_content_settings.images":2}
     chrome_options.add_experimental_option("prefs", prefs)
 
-    
 
+
+    
+    #Set profile 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Default")
