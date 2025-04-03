@@ -27,6 +27,9 @@ def get_chromedriver_version():
         return "Unknown version"
     
 
+def natural_sleep(base, variance=2):
+    time.sleep(base + random.uniform(-variance, variance))
+
 def send_discord_webhook(webhook_url, title, log_results, color=16711680):
     """
     Sends an embedded message to a Discord webhook with log results as fields.
@@ -162,7 +165,8 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     driver.get("https://dashboard.teneo.pro")
     
-    wait = WebDriverWait(driver, 15 * delay_multiplier)
+    timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
+    wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
     
     if cookie:
         add_cooki(driver, {"key": "accessToken", "value": cookie})
@@ -242,7 +246,8 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
 
 def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
-    wait = WebDriverWait(driver, 15 * delay_multiplier)
+    timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
+    wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Dawn website...{LogColors.RESET}")
 
     try:
@@ -311,6 +316,7 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     logging.info(f"🌍 Navigating to Grass dashboard...")
     clearMemory(driver)
     driver.get("https://app.getgrass.io/dashboard")
+    time.sleep(random.randint(7, 15) * delay_multiplier)
     WebDriverWait(driver, random.randint(7, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
     
     if driver.current_url == "https://app.getgrass.io/dashboard":
@@ -444,6 +450,7 @@ def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay
     return
 
 
+
 def runGradientNode(driver, email, password, delay_multiplier=1):
     """
     Automates the login and navigation process for Gradient Node.
@@ -452,22 +459,29 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
         driver: Selenium WebDriver instance.
         email: User's email address.
         password: User's password.
-        delay_multiplier: Multiplier for random sleep intervals.
+        delay_multiplier: Multiplier for random sleep intervals and timeout duration.
     """
-    wait = WebDriverWait(driver, 20)  # Set a max wait time of 20 seconds
+    timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
+    wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
+
+
+
+    def earning_status():
+        pass
 
     logging.info(f"🚀 Starting Gradient Node automation...")
     logging.info(f"🌍 Visiting Gradient Network dashboard...")
     clearMemory(driver)
 
     driver.get("https://app.gradient.network/dashboard")
-    wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    natural_sleep(random.randint(9, 15) * delay_multiplier)
 
     if driver.current_url == "https://app.gradient.network/dashboard":
         logging.info(f"✅ Already logged in. Skipping login process.")
-
         logging.info(f"🔧 Accessing extension settings...")
         driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
+        natural_sleep(2)
+        logging.info(f"💰 Earning in progress...")
         return
 
     logging.info(f"🔄 Redirecting to login page...")
@@ -475,19 +489,22 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
     logging.info(f"🔑 Entering email...")
-    email_input = wait.until(EC.presence_of_element_located((By.XPATH, 
-        '//input[@class="ant-input css-11fzbzo ant-input-outlined rounded-full h-9 px-4 text-sm"]')))
+    email_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 
+        'input.ant-input.css-2ronba.ant-input-outlined.rounded-full.h-9.px-4.text-sm[type="text"][placeholder="Enter Email"]')))
     email_input.send_keys(email)
+    natural_sleep(2)
 
     logging.info(f"🔒 Entering password...")
     password_input = wait.until(EC.presence_of_element_located((By.XPATH, 
         '//input[@placeholder="Enter Password"]')))
     password_input.send_keys(password)
+    natural_sleep(2)
 
     logging.info(f"➡️ Clicking login button...")
     button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 
         'button.custom-flying-button.bg-black.text-white')))
     button.click()
+    natural_sleep(3)
 
     logging.info(f"🔀 Waiting for login to complete...")
     wait.until(EC.url_contains("dashboard"))
@@ -498,6 +515,7 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
 
     logging.info(f"🎉 Successfully logged in! Gradient Node is running...")
     logging.info(f"💰 Earning in progress...")
+
 
 def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
     """
