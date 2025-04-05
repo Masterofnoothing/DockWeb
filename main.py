@@ -9,6 +9,7 @@ import logging
 import subprocess
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 from flask import Flask, render_template, request, send_file
 import threading
@@ -122,23 +123,26 @@ def clearMemory(driver):
 
 
 
-# function to handle cookie banner: If a cookie banner is present press the button containing the accept text
 def handle_cookie_banner(driver):
     """
-    Handle the cookie banner by clicking the "Accept" button if it's present.
+    Handle the cookie banner by clicking the "ACCEPT ALL" button if it's present.
 
     Args:
         driver (webdriver): The WebDriver instance.
     """
     try:
-        cookie_banner = driver.find_element(By.XPATH, "//button[contains(text(), 'ACCEPT')]")
-        if cookie_banner:
+        # Match button by visible text
+        cookie_button = driver.find_element(By.XPATH, "//button[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'ACCEPT ALL')]")
+        
+        if cookie_button:
             logging.info('Cookie banner found. Accepting cookies...')
-            cookie_banner.click()
-            time.sleep(random.randint(3, 11))
+            cookie_button.click()
+            time.sleep(random.randint(3, 11))  # simulate human behavior
             logging.info('Cookies accepted.')
-    except Exception:
-        pass
+    except NoSuchElementException:
+        logging.info("No cookie banner found.")
+    except Exception as e:
+        logging.warning(f"Unexpected error while handling cookie banner: {e}")
 def askCapcha():
     
     while not os.path.exists(CAPTCHA_RESULT_PATH):
@@ -167,7 +171,7 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
     
     timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
     wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
-    
+    natural_sleep(15,variance=7)
     if cookie:
         add_cooki(driver, {"key": "accessToken", "value": cookie})
         add_cooki(driver,{"key":"auth","value":json.dumps({"state":{"accessToken":cookie,"signupToken":None,"passwordResetTimeout":{"email":"","state":None,"timestamp":0,"duration":0}},"version":0})})
@@ -191,7 +195,7 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
         except:
             pass
 
-        connect_button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")))
+        connect_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")
         logging.info(f"{LogColors.WARNING}🔍 Button says {connect_button.text}{LogColors.RESET}")
         
         while connect_button.text.strip().lower() == "connect node":
@@ -249,7 +253,7 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
     timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
     wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Dawn website...{LogColors.RESET}")
-
+    natural_sleep(15,variance=7)
     try:
         alert = wait.until(EC.alert_is_present())
         alert_text = alert.text.lower()
@@ -310,14 +314,15 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
             logging.info(f"{LogColors.FAIL}❌ Incorrect CAPTCHA, retrying...{LogColors.RESET}")
 
     logging.info(f"{LogColors.HEADER}💸 Earning started.{LogColors.RESET}")
+
+
 def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     logging.info(f"🚀 Starting Grass automation...")
     
     logging.info(f"🌍 Navigating to Grass dashboard...")
     clearMemory(driver)
     driver.get("https://app.getgrass.io/dashboard")
-    time.sleep(random.randint(7, 15) * delay_multiplier)
-    WebDriverWait(driver, random.randint(7, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
+    natural_sleep(15*delay_multiplier,variance=7)
     
     if driver.current_url == "https://app.getgrass.io/dashboard":
         logging.info(f"✅ Already logged in. Skipping login process.")
@@ -338,25 +343,35 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     
     logging.info(f"🔄 Redirecting to login page...")
     driver.get("https://app.getgrass.io/")
-    WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    natural_sleep(7,3)
     handle_cookie_banner(driver)
     
     logging.info(f"🔑 Entering login credentials...")
-    username = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, 
-        '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[1]/div/input')))
+    username = driver.find_element(By.NAME, "email")
     username.send_keys(email)
+    button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
+    button.click()
     
-    passwd = driver.find_element(By.XPATH, 
-        '/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/div[2]/div[2]/div/input')
+
+    natural_sleep(15)
+    element = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//p[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
+    )
+    # Click the element
+    element.click()
+    logging.info("Clicked on Use Password Instead......")
+    natural_sleep(15)
+    passwd = driver.find_element(By.NAME, "password")
     passwd.send_keys(password)
     
-    logging.info(f"➡️ Clicking login button...")
-    button = driver.find_element(By.XPATH, "/html/body/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/form/button")
+    button = driver.find_element(By.XPATH, "//button[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'SIGN IN')]")
     button.click()
+    logging.info(f"➡️ Clicking login button...")
     
     logging.info(f"⏳ Waiting for login response...")
     WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.url_contains("dashboard"))
-    
+
+    logging.info(f"⏳ Log in sucessful.......")
     logging.info(f"🔧 Accessing extension settings...")
     driver.get(f'chrome-extension://{extension_id}/index.html')
     WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
@@ -368,11 +383,14 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     logging.info(f"🎉 Successfully logged in! Grass is running...")
     handle_cookie_banner(driver)
     logging.info(f"💰 Earning in progress...")
+
+
+
+
 def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay_multiplier=1):
     driver.set_window_size(1024, driver.get_window_size()['height'])
     driver.get("https://app.nodepay.ai/dashboard")
     time.sleep(random.randint(9,16))
-    WebDriverWait(driver, random.randint(9, 15) * delay_multiplier).until(EC.url_contains("dashboard"))
     
     if cookie and driver.current_url != "https://app.nodepay.ai/dashboard":
         add_cooki(driver, {"key": "np_token", "value": cookie})
@@ -513,6 +531,10 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     window_handles = driver.window_handles
     driver.switch_to.window(window_handles[0])
 
+    logging.info(f"🔧 Accessing extension settings...")
+    driver.get("chrome-extension://caacbgbklghmpodbdafajbgdnegacfmo/popup.html")
+    natural_sleep(2)
+    logging.info(f"💰 Earning in progress...")
     logging.info(f"🎉 Successfully logged in! Gradient Node is running...")
     logging.info(f"💰 Earning in progress...")
 
@@ -610,7 +632,7 @@ def run():
     all_pass = os.getenv('ALL_PASS')
 
     # Fetch individual credentials, falling back to all_email/all_pass if not set
-    grass_email = os.getenv('GRASS_USER') or os.getenv('GRASS_USER', all_email)
+    grass_email = os.getenv('GRASS_USER') or os.getenv('GRASS_EMAIL', all_email)
     grass_password = os.getenv('GRASS_PASS', all_pass)
 
     gradient_email = os.getenv('GRADIENT_EMAIL', all_email)
