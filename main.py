@@ -179,22 +179,29 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
         try:
             time.sleep(15)
             wait.until(EC.url_contains("/dashboard"))
+            logging.info("Log in sucessfull")
         except:
             logging.error("Nodepay cookie seems to be expired")
             return
         
     if driver.current_url == "https://dashboard.teneo.pro/dashboard":
-        logging.info(f"{LogColors.OKBLUE}✅ Already logged in, skipping login{LogColors.RESET}")
+        logging.info(f"{LogColors.OKBLUE}✅ Inside the dahboard.....{LogColors.RESET}")
         logging.info(f"{LogColors.OKGREEN}🖥️ Accessing extension settings page...{LogColors.RESET}")
         driver.get(f'chrome-extension://{extension_id}/index.html')
         
         try:
-            joinButton = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/div[2]/button")))
+            driver.add_cookie({"accessToken":cookie})
+            driver.refresh()
+
+            joinButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Join now')]")))
             joinButton.click()
+            logging.info("Join Now button was clicked......")
+            natural_sleep(3*delay_multiplier)
+            clearMemory(driver)
             driver.get(f'chrome-extension://{extension_id}/index.html')
         except:
             pass
-
+        natural_sleep(3*delay_multiplier)
         connect_button = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[1]/div/button[1]")
         logging.info(f"{LogColors.WARNING}🔍 Button says {connect_button.text}{LogColors.RESET}")
         
@@ -276,14 +283,14 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
 
     driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
     
-    emailElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='email']")))
+    emailElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='email']")))
     emailElement.send_keys(email)
     
-    passElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']")))
+    passElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='password']")))
     passElement.send_keys(password)
 
-    capElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='captcha']/div/input")))
-    capchaImg = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='captcha']/div/img")))
+    capElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='puzzelAns']")))
+    capchaImg = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='puzzleImage']")))
 
     flask_thread = threading.Thread(target=runFlask, daemon=True)
     flask_thread.start()
@@ -303,7 +310,7 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
         capElement.clear()
         capElement.send_keys(askCapcha())
 
-        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//a/button[contains(text(), 'Login')]")))
+        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='loginButton']")))
         login_button.click()
         
         try:
@@ -616,7 +623,7 @@ def run():
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     prefs = {"profile.managed_default_content_settings.images":2}
     chrome_options.add_experimental_option("prefs", prefs)
-
+    
 
 
     
@@ -624,6 +631,7 @@ def run():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Default")
+    
     
 
     # Read variables from the OS env
