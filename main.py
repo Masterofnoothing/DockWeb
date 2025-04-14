@@ -384,12 +384,15 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
     
     logging.info(f"🚀 Activating extension...")
-    button = driver.find_element(By.XPATH, "//button")
-    button.click()
+    element = WebDriverWait(driver,random.randint(3, 7)*delay_multiplier).until(
+    EC.presence_of_element_located((By.XPATH, "//p[text()='Grass is Connected']"))
+    )
+
+    logging.info(f"{element.text}")
     
     logging.info(f"🎉 Successfully logged in! Grass is running...")
     handle_cookie_banner(driver)
-    logging.info(f"💰 Earning in progress...")
+    logging.info(f"💰 Earning in progress...\n\n\n")
 
 
 
