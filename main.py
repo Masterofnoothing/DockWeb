@@ -328,10 +328,9 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     
     logging.info(f"🌍 Navigating to Grass dashboard...")
     clearMemory(driver)
-    driver.get("https://app.getgrass.io/dashboard")
-    natural_sleep(15*delay_multiplier,variance=7)
-    
-    if driver.current_url == "https://app.getgrass.io/dashboard":
+    driver.get("https://app.grass.io/dashboard")
+    natural_sleep(15*delay_multiplier,variance=3)
+    if driver.current_url == "https://app.grass.io/dashboard":
         logging.info(f"✅ Already logged in. Skipping login process.")
         WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
         
@@ -340,8 +339,16 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
         WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
         
         logging.info(f"🚀 Activating extension...")
-        button = driver.find_element(By.XPATH, "//button")
-        button.click()
+
+        timeout = 0
+        status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
+        while "connected" not in status.text.lower():
+            if timeout > 12*delay_multiplier:
+                logging.error("Grass Failed to connect")
+                return
+            time.sleep(1)
+            status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
+            logging.info("waiting for grass to connect")
         
         logging.info(f"🎉 Successfully logged in! Grass is running...")
         handle_cookie_banner(driver)
@@ -349,7 +356,7 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
         return
     
     logging.info(f"🔄 Redirecting to login page...")
-    driver.get("https://app.getgrass.io/")
+    driver.get("https://app.grass.io/")
     natural_sleep(7,3)
     handle_cookie_banner(driver)
     
