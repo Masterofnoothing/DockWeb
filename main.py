@@ -47,6 +47,42 @@ def is_recaptcha_present(driver):
 
     return False
 
+
+def call_capsolver(driver, extension_id="bbdhfoclddncoaomddgkaaphcnddbpdh", enable_auto=True) -> None:
+    original_window = driver.current_window_handle
+    driver.execute_script("window.open('');")
+    driver.switch_to.window(driver.window_handles[-1])
+
+    try:
+        driver.get(f"chrome-extension://{extension_id}/popup.html")
+
+        # List of all settings you want to toggle
+        settings = [
+            "recaptcha_auto_open",
+            "recaptcha_auto_solve"
+        ]
+
+        for setting in settings:
+            expected_class = "off" if enable_auto else "on"
+            desired_class = "on" if enable_auto else "off"
+
+            try:
+                # Wait for the toggle with expected current class
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, f'div.settings_toggle.{expected_class}[data-settings="{setting}"]'))
+                )
+
+                toggles = driver.find_elements(By.CSS_SELECTOR, f'div.settings_toggle.{expected_class}[data-settings="{setting}"]')
+                for toggle in toggles:
+                    driver.execute_script("arguments[0].click();", toggle)
+
+            except Exception as e:
+                print(f"[!] Could not toggle setting '{setting}': {e}")
+
+    finally:
+        driver.close()
+        driver.switch_to.window(original_window)
+
 def send_discord_webhook(webhook_url, title, log_results, color=16711680):
     """
     Sends an embedded message to a Discord webhook with log results as fields.
@@ -383,8 +419,10 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
     button.click()
     if is_recaptcha_present(driver):
-        logging.info("Captcha found your IP may be flagged :/ Slow Down ")
-        natural_sleep(15)
+        logging.info("Captcha found trying to auto solve")
+        call_capsolver(driver)
+        natural_sleep(60)
+        button.click()
     
 
     natural_sleep(15)
@@ -706,9 +744,9 @@ def run():
         chromedriver_version = get_chromedriver_version()
         logging.info(f'Using {chromedriver_version}')
 
-        '''logging.info("Installing NopeCHA")
-        download_extension("dknlfmjaanfblgfdfebhijalfmhmjjjo")
-        chrome_options.add_extension("dknlfmjaanfblgfdfebhijalfmhmjjjo.crx")'''
+        logging.info("Installing rektCaptcha")
+        download_extension("bbdhfoclddncoaomddgkaaphcnddbpdh")
+        chrome_options.add_extension("bbdhfoclddncoaomddgkaaphcnddbpdh.crx")
         # Check if credentials are provided
         if  grass_email and  grass_password:
             logging.info('Installing Grass')
@@ -775,6 +813,7 @@ def run():
     # Block CSS requests
     driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*.css", "*.png", "*.svg"]})
 
+    call_capsolver(driver,enable_auto=False)
 
 
 
