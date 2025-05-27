@@ -31,6 +31,22 @@ def get_chromedriver_version():
 def natural_sleep(base, variance=2):
     time.sleep(base + random.uniform(-variance, variance))
 
+
+def is_recaptcha_present(driver):
+    try:
+        driver.find_element(By.CSS_SELECTOR, "iframe[src*='recaptcha']")
+        return True
+    except NoSuchElementException:
+        pass
+
+    try:
+        driver.find_element(By.CLASS_NAME, "g-recaptcha")
+        return True
+    except NoSuchElementException:
+        pass
+
+    return False
+
 def send_discord_webhook(webhook_url, title, log_results, color=16711680):
     """
     Sends an embedded message to a Discord webhook with log results as fields.
@@ -175,6 +191,7 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
     if cookie:
         add_cooki(driver, {"key": "accessToken", "value": cookie})
         add_cooki(driver,{"key":"auth","value":json.dumps({"state":{"accessToken":cookie,"signupToken":None,"passwordResetTimeout":{"email":"","state":None,"timestamp":0,"duration":0}},"version":0})})
+        add_cooki(driver,{"key":"sb-node-b-auth-token","value":json.dumps({"access_token":cookie,"token_type":"bearer"})})
         driver.refresh()
         try:
             time.sleep(15)
@@ -365,6 +382,9 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     username.send_keys(email)
     button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
     button.click()
+    if is_recaptcha_present(driver):
+        logging.info("Captcha found your IP may be flagged :/ Slow Down ")
+        natural_sleep(15)
     
 
     natural_sleep(15)
@@ -681,11 +701,14 @@ def run():
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--headless=new')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36")
 
         chromedriver_version = get_chromedriver_version()
         logging.info(f'Using {chromedriver_version}')
 
+        '''logging.info("Installing NopeCHA")
+        download_extension("dknlfmjaanfblgfdfebhijalfmhmjjjo")
+        chrome_options.add_extension("dknlfmjaanfblgfdfebhijalfmhmjjjo.crx")'''
         # Check if credentials are provided
         if  grass_email and  grass_password:
             logging.info('Installing Grass')

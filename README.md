@@ -125,8 +125,10 @@ Yes...........well it all depends on app and demand for the app I dont wanna spa
 
 This software is distributed under the [GNU General Public License (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html). Users are free to redistribute and modify it in accordance with the license terms.
 
-**Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage.
+**Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage. 
 
+**Important Note:**
+This project was created solely to enhance the experience of real users. I do not condone or support farming, abuse, or misuse of applications through proxies or automation. If you are an app developer or company and have concerns about your app being listed on Dockweb, please feel free to contact me at masterofnoothing@proton.me.
 ---
 
 ## **Acknowledgments**
