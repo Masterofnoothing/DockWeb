@@ -34,7 +34,7 @@ DockWeb is a powerful Docker image designed to efficiently run multiple web exte
 | [🎨 GradientNode](https://app.gradient.network/signup?code=5VSBV9) | `5VSBV9` | ✅ Active |
 | [🌅 DawnInternet](https://www.dawninternet.com/) | `sufx302h` | ✅ Active |
 | [💰 NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) | `EHEzbYy5vbpP2cj` | ✅ Active |
-| [🔥 Teneo](https://bit.ly/teneo-community-node) | `S7erg` | ✅ Active |
+| [🔥 Teneo]([https://bit.ly/teneo-community-node](https://dashboard.teneo.pro/auth/signup?referralCode=S7erg)) | `S7erg` | ❌ Inactive |
 
 > 💡 **Pro Tip:** Using referral codes helps support the development of this free project!
 
@@ -199,8 +199,7 @@ docker rm dockweb
 
 ### Latest Changelog
 
-- ✅ **Added NodePay Support** - Finally integrated (though not my proudest moment 😅)
-- 🔄 **Re-added Teneo Support** - Back by popular demand
+- ✅ **Fixed Grass Lite Node** - Yes the recent issues with grass lite node is fixed it should be functional
 - 🔔 **Discord Webhooks** - Currently in development
 - 🐛 **Bug Reports Welcome** - Found an issue? [Create one here](https://github.com/carbon2029/dockweb/issues)
 
@@ -269,7 +268,6 @@ We welcome contributions! Here's how you can help:
 
 ## 🙏 Acknowledgments
 
-- **Special Thanks** to [MRColorR](https://github.com/MRColorR) for valuable contributions
 - **Alternative Solution** - Check out [money4band](https://github.com/MRColorR/money4band) for easier setup
 - **Community Support** - Thanks to all users providing feedback and suggestions
 
