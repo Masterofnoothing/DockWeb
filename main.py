@@ -9,7 +9,8 @@ import logging
 import subprocess
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException,ElementNotVisibleException, ElementNotInteractableException
+
 
 from flask import Flask, render_template, request, send_file
 import threading
@@ -34,19 +35,22 @@ def natural_sleep(base, variance=2):
 
 def is_recaptcha_present(driver):
     try:
-        driver.find_element(By.CSS_SELECTOR, "iframe[src*='recaptcha']")
-        return True
+        # First check if the reCAPTCHA iframe exists and is visible
+        iframe = driver.find_element(By.CSS_SELECTOR, "iframe[src*='recaptcha']")
+        if iframe.is_displayed():
+            # reCAPTCHA iframe is present, now check if it's solved
+            try:
+                token_field = driver.find_element(By.CSS_SELECTOR, "textarea#g-recaptcha-response")
+                token = token_field.get_attribute("value").strip()
+                if token:
+                    return False  # reCAPTCHA solved
+            except NoSuchElementException:
+                pass
+            return True  # reCAPTCHA present and unsolved
     except NoSuchElementException:
         pass
 
-    try:
-        driver.find_element(By.CLASS_NAME, "g-recaptcha")
-        return True
-    except NoSuchElementException:
-        pass
-
-    return False
-
+    return False  # No CAPTCHA iframe found => assume absent
 
 def call_capsolver(driver, extension_id="bbdhfoclddncoaomddgkaaphcnddbpdh", enable_auto=True) -> None:
     original_window = driver.current_window_handle
@@ -77,7 +81,7 @@ def call_capsolver(driver, extension_id="bbdhfoclddncoaomddgkaaphcnddbpdh", enab
                     driver.execute_script("arguments[0].click();", toggle)
 
             except Exception as e:
-                print(f"[!] Could not toggle setting '{setting}': {e}")
+                pass
 
     finally:
         driver.close()
@@ -396,12 +400,13 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
         timeout = 0
         status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
         while "connected" not in status.text.lower():
-            if timeout > 12*delay_multiplier:
+            if timeout > 60*delay_multiplier:
                 logging.error("Grass Failed to connect")
                 return
             time.sleep(1)
             status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
             logging.info("waiting for grass to connect")
+            timeout += 1 
         
         logging.info(f"🎉 Successfully logged in! Grass is running...")
         handle_cookie_banner(driver)
@@ -414,19 +419,35 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
     handle_cookie_banner(driver)
     
     logging.info(f"🔑 Entering login credentials...")
+
+    # Step 1: Enter email
     username = driver.find_element(By.NAME, "email")
     username.send_keys(email)
+
+    # Step 2: Click continue
     button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
     button.click()
-    if is_recaptcha_present(driver):
+    natural_sleep(5*delay_multiplier)
+    # Step 3: Check for captcha
+    tries = 0 
+    capsolver_active = False
+    while is_recaptcha_present(driver):
+        if tries > 3:
+            logging.info("Failed to Solve CAPTCHA")
+            break
         logging.info("Captcha found trying to auto solve")
-        call_capsolver(driver)
-        natural_sleep(60)
-        button.click()
-    
 
+        if not capsolver_active:
+            call_capsolver(driver)
+            capsolver_active = True
+        natural_sleep(60)
+        tries += 1 
+
+    else:
+        button.click()
+    call_capsolver(driver,enable_auto=False)
     natural_sleep(15)
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.XPATH, "//p[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
     )
     # Click the element
@@ -699,8 +720,6 @@ def run():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Default")
-    
-    
 
     # Read variables from the OS env
     # Fetch universal credentials if available
