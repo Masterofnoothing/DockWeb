@@ -58,8 +58,8 @@ docker run -d \
 | GRADIENT_PASS  | Password for GradientNode extension            |
 | DAWN_EMAIL     | Email for Dawn extension                       |
 | DAWN_PASS      | Password for Dawn extension                    |
-| TENO_COOKIE     | Cookie for Teno refer [nodepay_setup](Instructions/nodepay.md)                                  |
-|NP_COOKIE        | Cookie for nodepay refer [teneo_setup](Instructions/teneo.md)                    |
+| TENO_COOKIE     | Cookie for Teno refer [teneo_setup](Instructions/teneo.md) |
+|NP_COOKIE        | Cookie for nodepay refer [nodepay_setup](Instructions/nodepay.md) |
 | -v ./chrome_user_data:/app/chrome_user_data | Maps Chrome user data for session persistence |
 | -p 5000:5000   | Exposes port 5000 for web-based interactions    |
 
@@ -125,9 +125,9 @@ Yes...........well it all depends on app and demand for the app I dont wanna spa
 
 This software is distributed under the [GNU General Public License (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html). Users are free to redistribute and modify it in accordance with the license terms.
 
-**Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage. 
+## **Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage. 
 
-**Important Note:**
+## **Important Note:**
 This project was created solely to enhance the experience of real users. I do not condone or support farming, abuse, or misuse of applications through proxies or automation. If you are an app developer or company and have concerns about your app being listed on Dockweb, please feel free to contact me at masterofnoothing@proton.me.
 ---
 
