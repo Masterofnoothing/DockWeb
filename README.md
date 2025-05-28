@@ -1,152 +1,319 @@
-# **DockWeb: Unified Web Extension Deployment**
+# 🚢 DockWeb: Unified Web Extension Deployment
 
-DockWeb is a versatile Docker image designed to efficiently run multiple web extensions within a single container. As the landscape of monetizable web extensions expands, DockWeb provides a seamless solution for managing and deploying them collectively.
+<div align="center">
+
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/carbon2029/dockweb)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen?style=for-the-badge)](https://github.com/carbon2029/dockweb/issues)
+
+*A versatile Docker solution for running multiple web extensions in a single container*
+
+</div>
 
 ---
 
-## **Supported Applications**
-- [Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-)
-- [GradientNode](https://app.gradient.network/signup?code=5VSBV9)
-- [DawnInternet](https://www.dawninternet.com/) *sufx302h use this code pretty please*
-- [NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) 
-- [Teno](https://bit.ly/teneo-community-node) *S7erg use this code pretty please*
+## 🌟 Overview
+
+DockWeb is a powerful Docker image designed to efficiently run multiple web extensions within a single container. As the landscape of monetizable web extensions expands, DockWeb provides a seamless "set it and forget it" solution for managing and deploying them collectively.
+
+### ✨ Key Features
+
+- 🔄 **Multi-Extension Support** - Run multiple web extensions simultaneously
+- ⚡ **Resource Optimization** - Reduces system overhead by consolidating extensions
+- 📈 **Scalability** - Designed to accommodate new extensions as they emerge
+- 🖥️ **Cross-Platform** - Works on any Docker-supported system
+- 💾 **Persistent Sessions** - Maintains login states across container restarts
 
 ---
 
-## **Deployment Guide** 🚀
+## 📱 Supported Applications
 
-To deploy DockWeb with the appropriate credentials, set the required environment variables. You can specify credentials for all extensions at once using `ALL_EMAIL` and `ALL_PASS`, or define them individually as needed.
+| Application | Referral Code | Status |
+|-------------|---------------|---------|
+| [🌱 Grass](https://app.getgrass.io/register/?referralCode=cDmWvtOKIDU-7T-) | `cDmWvtOKIDU-7T-` | ✅ Active |
+| [🎨 GradientNode](https://app.gradient.network/signup?code=5VSBV9) | `5VSBV9` | ✅ Active |
+| [🌅 DawnInternet](https://www.dawninternet.com/) | `sufx302h` | ✅ Active |
+| [💰 NodePay](https://app.nodepay.ai/register?ref=EHEzbYy5vbpP2cj) | `EHEzbYy5vbpP2cj` | ✅ Active |
+| [🔥 Teneo](https://bit.ly/teneo-community-node) | `S7erg` | ✅ Active |
 
-### **Basic Command (Beginner Friendly)**
+> 💡 **Pro Tip:** Using referral codes helps support the development of this free project!
+
+---
+
+## 🚀 Quick Start
+
+### One-Click Deployment (Recommended)
+
 ```bash
 docker run -d \
-  --env ALL_EMAIL=<your_email> \
-  --env ALL_PASS=<your_password> \
-  --env GRASS_USER=<your_email> \
-  --env GRASS_PASS=<your_password> \
-  --env GRADIENT_EMAIL=<your_email> \
-  --env GRADIENT_PASS=<your_password> \
-  --env DAWN_EMAIL=<your_email> \
-  --env DAWN_PASS=<your_password> \
-  --env TENO_EMAIL=<your_email> \
-  --env TENO_PASS=<your_password> \
+  --name dockweb \
+  --env ALL_EMAIL=your_email@example.com \
+  --env ALL_PASS=your_password \
   --volume ./chrome_user_data:/chrome_user_data \
   --publish 5000:5000 \
+  --restart unless-stopped \
   carbon2029/dockweb
 ```
 
-> **Note:** You only need to include the variables for the extensions you plan to use.
+### 🔧 Individual Extension Configuration
 
+If you prefer to configure extensions individually:
 
-> **Tip** This is too difficult for you check this awesome project called [money4band](https://github.com/MRColorR/money4band) for easy app setup
-
-### **Changelog**  
-- Added support of nodepay yes I finally added support for nodepay but it's not something I am really proud of or I wanted to be but it's here.
-- Readded support for teneo 
-- Woking on discord weebhooks uwu
-- if you find any bugs create an issue :D Happy Earning!!!
-
-### **Supported Environment Variables**
-
-| Variable Name     | Description                                         |
-|------------------|-------------------------------------------------|
-| ALL_EMAIL      | Universal email for all extensions (if same)   |
-| ALL_PASS       | Universal password for all extensions (if same) |
-| GRASS_USER     | Email for Grass extension                      |
-| GRASS_PASS     | Password for Grass extension                   |
-| GRADIENT_EMAIL | Email for GradientNode extension               |
-| GRADIENT_PASS  | Password for GradientNode extension            |
-| DAWN_EMAIL     | Email for Dawn extension                       |
-| DAWN_PASS      | Password for Dawn extension                    |
-| TENO_COOKIE     | Cookie for Teno refer [teneo_setup](Instructions/teneo.md) |
-|NP_COOKIE        | Cookie for nodepay refer [nodepay_setup](Instructions/nodepay.md) |
-| -v ./chrome_user_data:/app/chrome_user_data | Maps Chrome user data for session persistence |
-| -p 5000:5000   | Exposes port 5000 for web-based interactions    |
-
-### **Persistent Data Management**
-To ensure session continuity across container restarts, DockWeb includes a volume mount for Chrome user data by default. This maps `./chrome_user_data` from the host system to `/app/chrome_user_data` within the container, enabling persistent storage and seamless session restoration.
-
----
-
-## **Advanced Usage**
-
-### **1. Pull the Docker Image:**
 ```bash
-docker pull carbon2029/dockweb
-```
-
-### **2. Run the Container:**
-Run the container while supplying credentials for one or more supported extensions:
-```bash
-docker run -d --env ALL_EMAIL=<your_email> --env ALL_PASS=<your_password> \
+docker run -d \
+  --name dockweb \
+  --env GRASS_USER=your_email@example.com \
+  --env GRASS_PASS=your_password \
+  --env GRADIENT_EMAIL=your_email@example.com \
+  --env GRADIENT_PASS=your_password \
+  --env DAWN_EMAIL=your_email@example.com \
+  --env DAWN_PASS=your_password \
   --volume ./chrome_user_data:/chrome_user_data \
-  --publish 5000:5000 carbon2029/dockweb
+  --publish 5000:5000 \
+  --restart unless-stopped \
+  carbon2029/dockweb
 ```
 
-### **3. Monitor the Container:**
-To verify if the container is running:
+> 📝 **Note:** You only need to include variables for the extensions you plan to use.
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ALL_EMAIL` | Universal email for all extensions | `user@example.com` |
+| `ALL_PASS` | Universal password for all extensions | `your_password` |
+| `GRASS_USER` | Grass extension email | `user@example.com` |
+| `GRASS_PASS` | Grass extension password | `grass_password` |
+| `GRADIENT_EMAIL` | GradientNode extension email | `user@example.com` |
+| `GRADIENT_PASS` | GradientNode extension password | `gradient_password` |
+| `DAWN_EMAIL` | Dawn extension email | `user@example.com` |
+| `DAWN_PASS` | Dawn extension password | `dawn_password` |
+| `TENO_COOKIE` | Teneo cookie ([setup guide](Instructions/teneo.md)) | `cookie_value` |
+| `NP_COOKIE` | NodePay cookie ([setup guide](Instructions/nodepay.md)) | `cookie_value` |
+
+### Volume Mounts
+
+| Host Path | Container Path | Purpose |
+|-----------|----------------|---------|
+| `./chrome_user_data` | `/chrome_user_data` | Session persistence |
+
+### Port Mapping
+
+| Host Port | Container Port | Purpose |
+|-----------|----------------|---------|
+| `5000` | `5000` | Web interface access |
+
+---
+
+## 🔧 Advanced Usage
+
+### Step-by-Step Setup
+
+1. **Pull the Docker Image**
+   ```bash
+   docker pull carbon2029/dockweb
+   ```
+
+2. **Create Data Directory** (Optional but recommended)
+   ```bash
+   mkdir -p ./chrome_user_data
+   ```
+
+3. **Run the Container**
+   ```bash
+   docker run -d \
+     --name dockweb \
+     --env ALL_EMAIL=your_email@example.com \
+     --env ALL_PASS=your_password \
+     --volume ./chrome_user_data:/chrome_user_data \
+     --publish 5000:5000 \
+     --restart unless-stopped \
+     carbon2029/dockweb
+   ```
+
+4. **Monitor Container Status**
+   ```bash
+   docker ps
+   docker logs dockweb
+   ```
+
+5. **Access Web Interface**
+   Open your browser and navigate to `http://localhost:5000`
+
+### Container Management
+
 ```bash
+# View running containers
 docker ps
+
+# Check container logs
+docker logs dockweb
+
+# Stop the container
+docker stop dockweb
+
+# Start the container
+docker start dockweb
+
+# Remove the container
+docker rm dockweb
 ```
 
-### **4. Stop the Container:**
-```bash
-docker stop <container_id>
-```
+---
+
+## 📊 Performance & Resources
+
+### Current Resource Usage
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| **CPU Usage** | ~0.01 - 1% | Minimal impact |
+| **RAM Usage** | ~522 MB | With 5 apps running |
+| **Storage** | Variable | Depends on session data |
+
+> 🎯 **Optimization Goal:** Future updates will focus on further reducing resource consumption.
 
 ---
 
-## **Key Features**
+## 💰 Revenue Information
 
-- **Multi-Extension Support:** Run multiple web extensions in a single container.
-- **Resource Optimization:** Reduces system overhead by consolidating extensions.
-- **Scalability:** Designed to accommodate new extensions as they emerge.
-- **Cross-Platform Compatibility:** Works on any Docker-supported system.
+### Payout Status (as of Feb 9, 2025)
+
+| Platform | Airdrop Status | Notes |
+|----------|----------------|-------|
+| 🌱 **Grass** | ✅ **Paid** | Successfully distributed |
+| 💰 **NodePay** | ✅ **Paid** | Successfully distributed |
+| 🎨 **GradientNode** | ⏳ **Pending** | Claims future payouts |
+| 🌅 **DawnInternet** | ⏳ **Pending** | Claims future payouts |
+| 🔥 **Teneo** | ⏳ **Pending** | Claims future payouts |
+
+> ⚠️ **Disclaimer:** Exercise discretion and only participate if you trust the respective platforms.
 
 ---
 
-## **Frequently Asked Questions (FAQ)**
+## 🆕 Recent Updates
 
-### **Is DockWeb lightweight?**
-Currently, resource usage is as follows:
-- **CPU:** ~0.01 - 1%
-- **RAM:** ~522 MB (With 5 apps)
+### Latest Changelog
 
-Future updates will focus on further optimizations to reduce resource consumption.
+- ✅ **Added NodePay Support** - Finally integrated (though not my proudest moment 😅)
+- 🔄 **Re-added Teneo Support** - Back by popular demand
+- 🔔 **Discord Webhooks** - Currently in development
+- 🐛 **Bug Reports Welcome** - Found an issue? [Create one here](https://github.com/carbon2029/dockweb/issues)
 
-### **Do these extensions generate revenue?**
-As of **Feb 9, 2025**, only Grass and Nodepay have successfully distributed an airdrop. Other platforms claim to offer payouts in the future. Users should exercise discretion and only participate if they trust the respective platforms.
+### Upcoming Features
 
-### **Will you add more apps?**
-Yes...........well it all depends on app and demand for the app I dont wanna spam dockweb with trash apps if you want an app added you can suggest it in issues, I only add the apps that I personally will use cause I am not a fan of coping years for something that may or may not pay you.
+- 🤖 **Auto-login for Captcha Services** - Working on bypassing Cloudflare challenges
+- 📊 **Enhanced Monitoring** - Better logging and status reporting
+- 🎨 **Improved Web Interface** - More user-friendly dashboard
+
 ---
 
-## **License**
+## 🤔 Frequently Asked Questions
 
+<details>
+<summary><strong>Why use DockWeb instead of browser extensions?</strong></summary>
+
+DockWeb provides several advantages:
+- **Security**: Isolates unknown extensions from your personal browser
+- **Resource Management**: Centralized control over all extensions
+- **Automation**: "Set it and forget it" approach
+- **Scalability**: Easy to manage multiple accounts or extensions
+</details>
+
+<details>
+<summary><strong>Is DockWeb resource-intensive?</strong></summary>
+
+No! DockWeb is designed to be lightweight:
+- CPU usage: ~0.01-1%
+- RAM usage: ~522MB with 5 applications
+- Continuous optimization efforts to reduce footprint further
+</details>
+
+<details>
+<summary><strong>How do I handle Captcha challenges?</strong></summary>
+
+For NodePay and Teneo:
+- These services use Cloudflare captcha protection
+- Currently requires manual cookie extraction
+- Refer to setup guides: [Teneo](Instructions/teneo.md) | [NodePay](Instructions/nodepay.md)
+- Auto-login solution is in development
+</details>
+
+<details>
+<summary><strong>Will you add more applications?</strong></summary>
+
+Yes, but selectively:
+- Apps must show genuine potential
+- Personal testing and validation required
+- Community demand considered
+- No "trash apps" that may never pay
+- Suggest new apps via [GitHub Issues](https://github.com/carbon2029/dockweb/issues)
+</details>
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+- 🐛 **Report Bugs** - [Open an issue](https://github.com/carbon2029/dockweb/issues)
+- 💡 **Suggest Features** - Share your ideas
+- 🏗️ **Submit PRs** - Code contributions are welcome
+- 📖 **Improve Documentation** - Help make guides clearer
+
+---
+
+## 🙏 Acknowledgments
+
+- **Special Thanks** to [MRColorR](https://github.com/MRColorR) for valuable contributions
+- **Alternative Solution** - Check out [money4band](https://github.com/MRColorR/money4band) for easier setup
+- **Community Support** - Thanks to all users providing feedback and suggestions
+
+---
+
+## 📞 Contact & Support
+
+- **Issues & Bugs**: [GitHub Issues](https://github.com/carbon2029/dockweb/issues)
+- **General Inquiries**: masterofnoothing@proton.me
+- **App Developers**: If you have concerns about your app being listed, please reach out
+
+---
+
+## 📄 License & Legal
+
+### License
 This software is distributed under the [GNU General Public License (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html). Users are free to redistribute and modify it in accordance with the license terms.
 
-## **Disclaimer:** This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage. 
+### Disclaimer
+This software is provided "as is," without warranty of any kind. Users assume full responsibility for any risks associated with its usage.
 
-## **Important Note:**
-This project was created solely to enhance the experience of real users. I do not condone or support farming, abuse, or misuse of applications through proxies or automation. If you are an app developer or company and have concerns about your app being listed on Dockweb, please feel free to contact me at masterofnoothing@proton.me.
+### Important Notice
+This project was created solely to enhance the experience of real users. I do not condone or support:
+- ❌ Farming or automation abuse
+- ❌ Proxy misuse
+- ❌ Application terms violation
+
 ---
 
-## **Acknowledgments**
+<div align="center">
 
-Special thanks to [MRColorR](https://github.com/MRColorR) for contributions to this project.
+### 💖 Support the Project
 
-If you find this project helpful, consider using the referral links provided. Your support helps fund the development of more free and open-source projects. ❤️
+If you find DockWeb helpful, consider:
+- ⭐ Starring the repository
+- 🔗 Using the provided referral links
+- 🤝 Contributing to the codebase
+- 📢 Sharing with others
+
+*Your support helps fund the development of more free and open-source projects!*
+
 ---
 
-## **My Opinions and Vision on the Project**  
+**Made with ❤️ by the DockWeb Team**
 
-As mentioned previously, I am not a fan of waiting years for something that may or may not pay off. So, DockWeb follows a "set it and forget it" ideology, and I will try my best to keep things that way.  
-
-You may ask, why use DockWeb at all? Why not simply install the extension directly on your web browser? Well, yeah, you can, but I am personally skeptical of running unknown extensions in my personal browser. So, I created DockWeb—and the best part is, it's free to use! 😃 But remember, it's a personal choice. If you find running apps on your main browser hassle-free, you can always go that route.  
-
-### **Nodepay and Other Captchas**  
-
-Nodepay and Teneo use Cloudflare captcha, which is really hard to bypass. I tried many methods, but all ended in a dead end. So for now, you have to manually enter the cookies. 😕  
-
-But if I find a way to enable auto-login, I’ll be sure to add it! and yeah prs are always welcome :D 
+</div>
 
