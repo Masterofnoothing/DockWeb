@@ -381,110 +381,151 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
 
 
 def runGrass(driver, email, password, extension_id, delay_multiplier=1):
-    logging.info(f"🚀 Starting Grass automation...")
-    
-    logging.info(f"🌍 Navigating to Grass dashboard...")
-    clearMemory(driver)
-    driver.get("https://app.grass.io/dashboard")
-    natural_sleep(15*delay_multiplier,variance=3)
-    if driver.current_url == "https://app.grass.io/dashboard":
-        logging.info(f"✅ Already logged in. Skipping login process.")
-        WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        
-        logging.info(f"🔧 Accessing extension settings...")
-        driver.get(f'chrome-extension://{extension_id}/index.html')
-        WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
-        
-        logging.info(f"🚀 Activating extension...")
-
-        timeout = 0
-        status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
-        while "connected" not in status.text.lower():
-            if timeout > 60*delay_multiplier:
-                logging.error("Grass Failed to connect")
-                return
-            time.sleep(1)
-            status = driver.find_element(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
-            logging.info("waiting for grass to connect")
-            timeout += 1 
-        
-        logging.info(f"🎉 Successfully logged in! Grass is running...")
-        handle_cookie_banner(driver)
-        logging.info(f"💰 Earning in progress...")
-        return
-    
-    logging.info(f"🔄 Redirecting to login page...")
-    driver.get("https://app.grass.io/")
-    natural_sleep(7,3)
-    handle_cookie_banner(driver)
-    
-    logging.info(f"🔑 Entering login credentials...")
-
-    # Step 1: Enter email
-    username = driver.find_element(By.NAME, "email")
-    username.send_keys(email)
-
-    # Step 2: Click continue
-    button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
-    button.click()
-    natural_sleep(5*delay_multiplier)
-    # Step 3: Check for captcha
-    tries = 0 
-    capsolver_active = False
-    while is_recaptcha_present(driver):
-        if tries > 3:
-            logging.info("Failed to Solve CAPTCHA")
-            break
-        logging.info("Captcha found trying to auto solve")
-
-        if not capsolver_active:
-            call_capsolver(driver)
-            capsolver_active = True
-        natural_sleep(60)
-        tries += 1 
-
-    else:
+    while True:  # Main retry loop for Grass connection
         try:
+            logging.info(f"🚀 Starting Grass automation...")
+            
+            logging.info(f"🌍 Navigating to Grass dashboard...")
+            clearMemory(driver)
+            driver.get("https://app.grass.io/dashboard")
+            natural_sleep(15*delay_multiplier,variance=3)
+
+            if driver.current_url == "https://app.grass.io/dashboard":
+                logging.info(f"✅ Already logged in. Skipping login process.")
+                WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                
+                logging.info(f"🔧 Accessing extension settings...")
+                driver.get(f'chrome-extension://{extension_id}/index.html')
+                WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
+                
+                logging.info(f"🚀 Activating extension...")
+                timeout = 0
+                while True:
+                    status_elements = driver.find_elements(By.XPATH, "//p[@class='chakra-text css-uzsxi7']")
+                    if not status_elements: 
+                        logging.warning("Grass status element not found. Assuming not connected and will retry or fail.")
+                        if timeout > 60 * delay_multiplier:
+                            # Raise an exception if the status element is not found after the timeout
+                            raise Exception("Grass status element not found after timeout.")
+                        time.sleep(1)
+                        timeout +=1
+                        driver.refresh() # Attempt to refresh the extension page
+                        natural_sleep(5)
+                        continue # Retry finding the element
+
+                    status_text = status_elements[0].text.lower()
+                    if "connected" in status_text:
+                        break # Exit the status check loop
+                    if timeout > 60 * delay_multiplier:
+                        logging.error("Grass Failed to connect after timeout")
+                        # Raise an exception if connection fails after the timeout
+                        raise Exception("Grass failed to connect after timeout")
+                    time.sleep(1)
+                    logging.info("waiting for grass to connect")
+                    timeout += 1
+                
+                logging.info(f"🎉 Successfully logged in! Grass is running...")
+                # handle_cookie_banner(driver) # Likely not needed here, on the extension page
+                logging.info(f"💰 Earning in progress...")
+                break  
+            
+            logging.info(f"🔄 Redirecting to login page...")
+            driver.get("https://app.grass.io/")
+            natural_sleep(7,3)
+            handle_cookie_banner(driver)
+            
+            logging.info(f"🔑 Entering login credentials...")
+
+            username = driver.find_element(By.NAME, "email")
+            username.send_keys(email)
+
+            button = driver.find_element(By.XPATH, "//button[contains(text(), 'CONTINUE')]")
             button.click()
-        except StaleElementReferenceException:
-            pass
-    call_capsolver(driver,enable_auto=False)
-    natural_sleep(15)
-    element = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.XPATH, "//p[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
-    )
-    # Click the element
-    element.click()
-    logging.info("Clicked on Use Password Instead......")
-    natural_sleep(15)
-    passwd = driver.find_element(By.NAME, "password")
-    passwd.send_keys(password)
-    
-    button = driver.find_element(By.XPATH, "//button[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'SIGN IN')]")
-    button.click()
-    logging.info(f"➡️ Clicking login button...")
-    
-    logging.info(f"⏳ Waiting for login response...")
-    WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.url_contains("dashboard"))
+            natural_sleep(5*delay_multiplier)
+            
+            tries = 0 
+            capsolver_active = False
+            while is_recaptcha_present(driver):
+                if tries > 3:
+                    logging.error("Failed to Solve CAPTCHA after multiple attempts")
+                    # Raise an exception if CAPTCHA solving fails multiple times
+                    raise Exception("Failed to Solve CAPTCHA after multiple attempts")
+                logging.info("Captcha found trying to auto solve")
+                if not capsolver_active:
+                    call_capsolver(driver)
+                    capsolver_active = True
+                natural_sleep(60) 
+                tries += 1 
+            
+            call_capsolver(driver,enable_auto=False) 
+            natural_sleep(random.uniform(2,5)) 
 
-    logging.info(f"⏳ Log in sucessful.......")
-    logging.info(f"🔧 Accessing extension settings...")
-    driver.get(f'chrome-extension://{extension_id}/index.html')
-    WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
-    
-    logging.info(f"🚀 Activating extension...")
-    element = WebDriverWait(driver,random.randint(3, 7)*delay_multiplier).until(
-    EC.presence_of_element_located((By.XPATH, "//p[text()='Grass is Connected']"))
-    )
+            use_password_button = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//p[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
+            )
+            use_password_button.click()
+            logging.info("Clicked on Use Password Instead......")
+            natural_sleep(random.uniform(2,5))
+            
+            passwd_field = driver.find_element(By.NAME, "password")
+            passwd_field.send_keys(password)
+            
+            signin_button = driver.find_element(By.XPATH, "//button[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'SIGN IN')]")
+            signin_button.click()
+            logging.info(f"➡️ Clicking login button...")
+            
+            logging.info(f"⏳ Waiting for login response...")
+            WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.url_contains("dashboard"))
 
-    logging.info(f"{element.text}")
-    
-    logging.info(f"🎉 Successfully logged in! Grass is running...")
-    handle_cookie_banner(driver)
-    logging.info(f"💰 Earning in progress...\n\n\n")
+            logging.info(f"⏳ Log in successful.......")
+            logging.info(f"🔧 Accessing extension settings...")
+            driver.get(f'chrome-extension://{extension_id}/index.html')
+            WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
+            
+            logging.info(f"🚀 Activating extension...")
+            timeout = 0
+            while True:
+                status_elements_after_login = driver.find_elements(By.XPATH, "//p[@class='chakra-text css-uzsxi7'] | //p[contains(text(),'Grass is Connected')] | //p[contains(text(),'Connected')]")
+                
+                if not status_elements_after_login:
+                    logging.warning("Grass status element not found after login. Will retry or fail.")
+                    if timeout > 60 * delay_multiplier:
+                        # Raise an exception if status element is not found after login and timeout
+                        raise Exception("Grass status element not found after login and timeout.")
+                    time.sleep(1)
+                    timeout +=1
+                    driver.refresh() # Refresh the extension page
+                    natural_sleep(5)
+                    continue # Retry finding the element
 
+                status_text_after_login = status_elements_after_login[0].text.lower()
+                logging.info(f"Grass status after login attempt: {status_text_after_login}")
+                if "connected" in status_text_after_login:
+                    break # Exit the post-login status check loop
+                if timeout > 60 * delay_multiplier:
+                    logging.error("Grass Failed to show connected status after login")
+                    # Raise an exception if connected status is not shown after login and timeout
+                    raise Exception("Grass failed to show connected status after login and timeout")
+                time.sleep(1)
+                logging.info("waiting for grass to show connected status after login")
+                timeout += 1
+            
+            logging.info(f"🎉 Successfully logged in and extension confirmed! Grass is running...")
+            # handle_cookie_banner(driver) # Likely not needed here, on the extension page
+            logging.info(f"💰 Earning in progress...\n\n\n")
+            break  
 
-
+        except Exception as e:
+            # Error handling: log the error and wait before retrying
+            logging.error(f"An error occurred in runGrass: {e}")
+            logging.info(f"Retrying Grass connection in 300 seconds...")
+            try:
+                if driver: # Ensure driver object exists
+                    clearMemory(driver) # Attempt to clear tabs
+                    driver.get('about:blank') # Navigate to a blank page to reset state
+            except Exception as ce:
+                logging.error(f"Error during cleanup before retry: {ce}")
+            time.sleep(300) # Wait 300 seconds before the next attempt
 
 def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay_multiplier=1):
     driver.set_window_size(1024, driver.get_window_size()['height'])
