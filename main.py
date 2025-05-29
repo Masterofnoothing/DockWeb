@@ -9,7 +9,7 @@ import logging
 import subprocess
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException,ElementNotVisibleException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
 
 
 from flask import Flask, render_template, request, send_file
@@ -444,7 +444,10 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
         tries += 1 
 
     else:
-        button.click()
+        try:
+            button.click()
+        except StaleElementReferenceException:
+            pass
     call_capsolver(driver,enable_auto=False)
     natural_sleep(15)
     element = WebDriverWait(driver, 20).until(
