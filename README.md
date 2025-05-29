@@ -49,7 +49,7 @@ docker run -d \
   --name dockweb \
   --env ALL_EMAIL=your_email@example.com \
   --env ALL_PASS=your_password \
-  --volume ./chrome_user_data:/chrome_user_data \
+  --volume ./chrome_user_data:/app/chrome_user_data \
   --publish 5000:5000 \
   --restart unless-stopped \
   carbon2029/dockweb
@@ -68,7 +68,7 @@ docker run -d \
   --env GRADIENT_PASS=your_password \
   --env DAWN_EMAIL=your_email@example.com \
   --env DAWN_PASS=your_password \
-  --volume ./chrome_user_data:/chrome_user_data \
+  --volume ./chrome_user_data:/app/chrome_user_data \
   --publish 5000:5000 \
   --restart unless-stopped \
   carbon2029/dockweb
@@ -129,7 +129,7 @@ docker run -d \
      --name dockweb \
      --env ALL_EMAIL=your_email@example.com \
      --env ALL_PASS=your_password \
-     --volume ./chrome_user_data:/chrome_user_data \
+     --volume ./chrome_user_data:/app/chrome_user_data \
      --publish 5000:5000 \
      --restart unless-stopped \
      carbon2029/dockweb
@@ -141,7 +141,7 @@ docker run -d \
    docker logs dockweb
    ```
 
-5. **Access Web Interface**
+5. **To Solve Dawn Captcha**
    Open your browser and navigate to `http://localhost:5000`
 
 ### Container Management
