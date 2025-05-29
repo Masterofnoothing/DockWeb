@@ -381,6 +381,9 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
 
 
 def runGrass(driver, email, password, extension_id, delay_multiplier=1):
+    MAX_GRASS_RETRIES = 5  # Maximum number of retry attempts for the main loop
+    retry_count = 0        # Initialize retry counter
+
     while True:  # Main retry loop for Grass connection
         try:
             logging.info(f"🚀 Starting Grass automation...")
@@ -518,7 +521,13 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
         except Exception as e:
             # Error handling: log the error and wait before retrying
             logging.error(f"An error occurred in runGrass: {e}")
-            logging.info(f"Retrying Grass connection in 300 seconds...")
+            
+            retry_count += 1 # Increment retry counter
+            if retry_count >= MAX_GRASS_RETRIES:
+                logging.error(f"Max retries ({MAX_GRASS_RETRIES}) reached for Grass. Skipping this app.")
+                return # Exit the function, stopping retries for Grass
+
+            logging.info(f"Retrying Grass connection in 300 seconds... (Attempt {retry_count}/{MAX_GRASS_RETRIES})")
             try:
                 if driver: # Ensure driver object exists
                     clearMemory(driver) # Attempt to clear tabs
