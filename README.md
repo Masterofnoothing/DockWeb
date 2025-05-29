@@ -99,7 +99,7 @@ docker run -d \
 
 | Host Path | Container Path | Purpose |
 |-----------|----------------|---------|
-| `./chrome_user_data` | `/chrome_user_data` | Session persistence |
+| `./chrome_user_data` | `/app/chrome_user_data` | Session persistence |
 
 ### Port Mapping
 
