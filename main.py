@@ -121,13 +121,11 @@ log.disabled = True
 CAPTCHA_IMAGE_PATH = "./static/screenshot.png"
 CAPTCHA_RESULT_PATH = "./static/captcha_result.txt"
 
-
 def runFlask():
     try:
         app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
     except:
         pass
-
 
 @app.route("/")
 def index():
@@ -148,7 +146,6 @@ def submit():
     return "Invalid input, please try again."
 
 
-
 extensionIds = {"nodepay":"lgmpfmgeabnnlemejacfljbmonaomfmm","grass":"ilehaonighjijnmpnagapkhpcdbhclfg","gradient":"caacbgbklghmpodbdafajbgdnegacfmo","dawn":"fpdkjdnhkakefebpekbdhillbhonfjjp",
                 "despeed":"ofpfdpleloialedjbfpocglfggbdpiem","teneo":"emcclcoaglgcpoognfiggmhnhgabppkm","grass-node":"lkbnfiajjmbhnfledhphioinpickokdi"}
 docker = os.getenv("ISDOCKER")
@@ -159,8 +156,9 @@ if not docker:
     load_dotenv()
 
 def setup_logging():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+    # Now simplified; run() handles basicConfig for unified setup.
+    # Can be removed if no other logging responsibilities.
+    pass # Kept for potential future logging setup (e.g., handlers).
 
 def clearMemory(driver):
     """Closes unused tabs to save memory."""
@@ -176,7 +174,6 @@ def clearMemory(driver):
 
     # Switch back to the first tab to ensure driver is on a valid window
     driver.switch_to.window(window_handles[0])
-
 
 
 def handle_cookie_banner(driver):
@@ -208,16 +205,12 @@ def askCapcha():
     with open(CAPTCHA_RESULT_PATH, "r") as f:
         captcha_text = f.read().strip()
 
-
-
     logging.info("CAPTCHA entered.")
     return captcha_text
 
 
 def add_cooki(driver, cooki):
     driver.execute_script(f"localStorage.setItem('{cooki['key']}', '{cooki['value']}');")
-
-
 
 
 def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, delay_multiplier=1.0):
@@ -518,9 +511,10 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
             logging.info(f"💰 Earning in progress...\n\n\n")
             break  
 
-        except Exception as e:
-            # Error handling: log the error and wait before retrying
-            logging.error(f"An error occurred in runGrass: {e}")
+        except BaseException as be:  # Catching BaseException for wider capture during debugging
+            print(f"[DEBUG] runGrass caught an exception: {type(be).__name__}") # Raw print for immediate debug output
+            # Modified error log below to be more user-friendly and hide verbose stack trace from 'be'
+            logging.error(f"😥 Grass encountered a {type(be).__name__}. Will attempt to retry.") 
             
             retry_count += 1 # Increment retry counter
             if retry_count >= MAX_GRASS_RETRIES:
@@ -617,7 +611,6 @@ def runNodepay(driver, cookie=None, email=None, passwd=None, api_key=None, delay
     return
 
 
-
 def runGradientNode(driver, email, password, delay_multiplier=1):
     """
     Automates the login and navigation process for Gradient Node.
@@ -630,8 +623,6 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     """
     timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
     wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
-
-
 
     def earning_status():
         pass
@@ -687,28 +678,35 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     logging.info(f"🎉 Successfully logged in! Gradient Node is running...")
     logging.info(f"💰 Earning in progress...")
 
-
 def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
     """
     Downloads a Chrome extension using the crxdl script.
-    
     Args:
         extension_id (str): The ID of the Chrome extension to download.
         repo_path (str): Path to the crxdl executable script.
-    
     Returns:
         None
     """
-    if docker == 'true':
+    # Assumes 'docker' is a global var (e.g., docker = os.getenv("ISDOCKER"))
+    if docker == 'true': 
         try:
-            logging.info(f"Starting download for extension ID: {extension_id}")
+            # Log CRX download start.
+            logging.info(f"Downloading CRX for ID: {extension_id} using {repo_path}...")
             result = subprocess.run(["python3",repo_path, extension_id], check=True, text=True, capture_output=True)
-            logging.info("Download successful!")
-            logging.info(result.stdout)
+            
+            # Log output from crx-dl.py script.
+            logging.info(f"Download script output for {extension_id}: {result.stdout.strip()}") 
+            if result.stderr:
+                # Log stderr if download script produced any.
+                logging.warning(f"Download script stderr for {extension_id}: {result.stderr.strip()}")
         except subprocess.CalledProcessError as e:
-            logging.info("An error occurred while downloading the extension:")
-            logging.error(e.stderr)
+            # Catches crx-dl.py script errors (non-zero exit code).
+            logging.error(f"Failed to download extension {extension_id}. Subprocess error: {e.stderr}")
+        except FileNotFoundError:
+            # Catches error if crx-dl.py script not found.
+            logging.error(f"Failed to download extension {extension_id}: crx-dl.py script not found at {repo_path}.")
     else:
+        # Non-Docker: Manual download (unchanged).
         url = f"https://chromewebstore.google.com/detail/{extension_id}"
         print(f"Opening: {url}")
 
@@ -723,10 +721,15 @@ def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py")
         return
 
 
-
 def run():
-    setup_logging()
-    logging.info('Starting the script...')
+   
+    # Centralized logging: called once at script start.
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    # setup_logging() call no longer needed for basicConfig.
+    # Call if it has other non-basicConfig logging tasks.
+
+    logging.info('Starting the script (run function)...')
 
     branding = f'''{LogColors.OKBLUE}
                 $$$$$$$\                      $$\                               $$\       
@@ -757,17 +760,12 @@ def run():
     if not found:
         logging.info("SingletonLock file not found")
 
-
-
     chrome_options = Options()
 
     #Prevent Images from loading to save resources 
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     prefs = {"profile.managed_default_content_settings.images":2}
     chrome_options.add_experimental_option("prefs", prefs)
-    
-
-
     
     #Set profile 
     chrome_options = webdriver.ChromeOptions()
@@ -805,8 +803,6 @@ def run():
     delay_multiplier = int((os.getenv("DELAY")) or 1)
 
     if docker == 'true':
-
-
 
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--headless=new')
@@ -848,15 +844,10 @@ def run():
             id = extensionIds['nodepay']
             chrome_options.add_extension(f"./{id}.crx")
 
-
         driver = webdriver.Chrome(options=chrome_options)
 
     else:
-
-
-
         driver = webdriver.Chrome(options=chrome_options)
-
 
         if  grass_email and  grass_password:
             logging.info('Installing Grass')
@@ -877,8 +868,6 @@ def run():
             logging.info('Installing Dawn')
             download_extension(extensionIds['dawn'],driver)
 
-         
-
     # Enable CDP
     driver.execute_cdp_cmd("Network.enable", {})
 
@@ -886,9 +875,6 @@ def run():
     driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*.css", "*.png", "*.svg"]})
 
     call_capsolver(driver,enable_auto=False)
-
-
-
 
     results = {}
 
@@ -936,7 +922,6 @@ def run():
     except Exception as e:
         logging.error(f'A critical error occurred: {e}')
 
-
     while True:
         try:
             time.sleep(3600)
@@ -945,7 +930,5 @@ def run():
             driver.quit()
             break
 
-
 if __name__ == "__main__":
-
     run()
