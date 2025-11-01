@@ -91,10 +91,14 @@ def send_discord_webhook(webhook_url, title, log_results, color=16711680):
     """
     Sends an embedded message to a Discord webhook with log results as fields.
     """
+    fileds = []
+    for app in log_results:
+        data  = {"name":app,"value":f"Status : {log_results[app]["status"]}\nPoints : {log_results[app]["points"]}","inline":False}
+        fileds.append(data)
     embed = {
         "title": title,
         "color": color,
-        "fields": [{"name": key, "value": str(value), "inline": False} for key, value in log_results.items()]
+        "fields": fileds
     }
     
     data = {"embeds": [embed]}
@@ -214,6 +218,7 @@ def add_cooki(driver, cooki):
 
 
 def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, delay_multiplier=1.0):
+    return {"status":"disabled","points":"none"}
     driver.set_window_size(1024, driver.get_window_size()['height'])
     logging.info(f"{LogColors.HEADER}🚀 Navigating to Teneo Website...{LogColors.RESET}")
     driver.get("https://dashboard.teneo.pro")
@@ -305,7 +310,11 @@ def runTeneo(driver, email=None, password=None, extension_id=None, cookie=None, 
     return
 
 
-def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
+def runDawn(driver, email, password, extension_id,capsolver_token=None, delay_multiplier=1.0):
+
+    def dawnBalance():
+        element = wait.until(EC.visibility_of_element_located((By.ID, "dawnbalance")))
+        return element.text
     driver.get(f"chrome-extension://{extension_id}/pages/dashboard.html")
     timeout = max(10, 20 * delay_multiplier)  # Ensure a minimum wait time of 10 seconds
     wait = WebDriverWait(driver, timeout)  # Set a max wait time based on delay multiplier
@@ -322,15 +331,15 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
         refresh_button = wait.until(EC.element_to_be_clickable((By.ID, "refreshpoint")))
         refresh_button.click()
         
-        element = wait.until(EC.visibility_of_element_located((By.ID, "dawnbalance")))
-        logging.info(f"{LogColors.OKGREEN}💰 Your Dawn Balance is {element.text}{LogColors.RESET}")
+        balance = dawnBalance()
+        logging.info(f"{LogColors.OKGREEN}💰 Your Dawn Balance is {balance}{LogColors.RESET}")
 
         element = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "connecttext")))
         if element.text.lower() == "connected":
             logging.info(f"{LogColors.OKGREEN}🔗 Dawn is connected{LogColors.RESET}")
             logging.info(f"{LogColors.HEADER}💸 Earning started...{LogColors.RESET}")
-        return
-
+            return {"status":"Connected","points":balance}
+        return {"status":"Disonnected","points":balance}
     driver.get(f"chrome-extension://{extension_id}/pages/signin.html")
     
     emailElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='email']")))
@@ -341,6 +350,35 @@ def runDawn(driver, email, password, extension_id, delay_multiplier=1.0):
 
     capElement = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='puzzelAns']")))
     capchaImg = wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='puzzleImage']")))
+
+    if capsolver_token:
+        solved = False
+        while not solved:
+            try:
+                os.remove(CAPTCHA_IMAGE_PATH)
+                os.remove(CAPTCHA_RESULT_PATH)
+            except FileNotFoundError:
+                pass
+            
+            capchaImg.screenshot(CAPTCHA_IMAGE_PATH)
+            capElement.click()
+            capElement.clear()
+            result = capsolver.solve_dawn(capsolver_token)
+            capElement.send_keys(result)
+
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='loginButton']")))
+            login_button.click()
+            
+            try:
+                wait.until(EC.url_changes(driver.current_url))
+                solved = True
+                logging.info(f"{LogColors.OKGREEN}✅ CAPTCHA Solved Successfully!{LogColors.RESET}")
+            except:
+                logging.info(f"{LogColors.FAIL}❌ Incorrect CAPTCHA, retrying...{LogColors.RESET}")
+
+        logging.info(f"{LogColors.HEADER}💸 Earning started.{LogColors.RESET}")
+
+        return {"status":"Connected","points":element.text}
 
     flask_thread = threading.Thread(target=runFlask, daemon=True)
     flask_thread.start()
@@ -917,7 +955,7 @@ def run():
             logging.error(f'Error loading example.com: {e}')
 
         if webhook_url:
-            send_discord_webhook(webhook_url,"DockwebStatus",results)
+            send_discord_webhook(webhook_url,"Dockweb Status",results)
 
     except Exception as e:
         logging.error(f'A critical error occurred: {e}')

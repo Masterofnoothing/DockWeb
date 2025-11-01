@@ -1,4 +1,8 @@
 import requests
+from twocaptcha import TwoCaptcha
+
+solver = TwoCaptcha('your_2captcha_api_key')
+
 
 def create_turnstile_task(api_key:str,site_key,website):
     if api_key.startswith("CAP"):
@@ -42,3 +46,9 @@ def get_turnstile_response(task_id,api_key):
             return data['solution']['token']
         else:
             return False
+        
+def solve_dawn(api_key):
+    filename="./static/screenshot.png"
+    solver = TwoCaptcha(api_key)
+    result = solver.normal(filename)
+    return (result)
