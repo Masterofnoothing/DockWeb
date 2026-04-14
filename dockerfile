@@ -1,8 +1,6 @@
 FROM debian:stable-slim
 
 # Set environment variables
-ENV GIT_USERNAME=sryze
-ENV GIT_REPO=crx-dl
 ENV ISDOCKER=true
 
 # Install necessary packages
@@ -11,7 +9,6 @@ RUN apt update && \
     apt install -y --no-install-recommends \
         curl \
         wget \
-        git \
         chromium \
         chromium-driver \
         python3 \
@@ -25,10 +22,6 @@ RUN apt update && \
 
 # Set working directory
 WORKDIR /app
-
-# Download crx downloader from GitHub
-RUN git clone "https://github.com/${GIT_USERNAME}/${GIT_REPO}.git" && \
-    chmod +x ./${GIT_REPO}/crx-dl.py
 
 # Copy project files
 COPY . .

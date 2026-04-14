@@ -27,7 +27,30 @@ def get_chromedriver_version():
     except Exception as e:
         logging.error(f"Could not get ChromeDriver version: {e}")
         return "Unknown version"
-    
+
+
+def get_chrome_version():
+    commands = [
+        ['chromium', '--version'],
+        ['chromium-browser', '--version'],
+        ['google-chrome', '--version'],
+        ['google-chrome-stable', '--version'],
+        ['chrome', '--version'],
+        ['chromedriver', '--version'],
+    ]
+
+    for command in commands:
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            parts = result.stdout.strip().split()
+            for part in parts:
+                if part and part[0].isdigit():
+                    return part
+        except Exception:
+            continue
+
+    logging.warning("Could not detect Chrome/Chromium version. Falling back to 9999.0.0.0 for CRX download.")
+    return "9999.0.0.0"
 
 def natural_sleep(base, variance=2):
     time.sleep(base + random.uniform(-variance, variance))
@@ -701,33 +724,45 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     logging.info(f"🎉 Successfully logged in! Gradient Node is running...")
     logging.info(f"💰 Earning in progress...")
 
-def download_extension(extension_id, driver=None,repo_path="./crx-dl/crx-dl.py"):
+def download_extension(extension_id, driver=None, output_path=None):
     """
-    Downloads a Chrome extension using the crxdl script.
+    Downloads a Chrome extension from Chrome's update service.
     Args:
         extension_id (str): The ID of the Chrome extension to download.
-        repo_path (str): Path to the crxdl executable script.
+        output_path (str): Optional destination file path for the CRX.
     Returns:
         None
     """
-    # Assumes 'docker' is a global var (e.g., docker = os.getenv("ISDOCKER"))
+    if output_path is None:
+        output_path = f"./{extension_id}.crx"
+
     if docker == 'true': 
         try:
-            # Log CRX download start.
-            logging.info(f"Downloading CRX for ID: {extension_id} using {repo_path}...")
-            result = subprocess.run(["python3",repo_path, extension_id], check=True, text=True, capture_output=True)
-            
-            # Log output from crx-dl.py script.
-            logging.info(f"Download script output for {extension_id}: {result.stdout.strip()}") 
-            if result.stderr:
-                # Log stderr if download script produced any.
-                logging.warning(f"Download script stderr for {extension_id}: {result.stderr.strip()}")
-        except subprocess.CalledProcessError as e:
-            # Catches crx-dl.py script errors (non-zero exit code).
-            logging.error(f"Failed to download extension {extension_id}. Subprocess error: {e.stderr}")
-        except FileNotFoundError:
-            # Catches error if crx-dl.py script not found.
-            logging.error(f"Failed to download extension {extension_id}: crx-dl.py script not found at {repo_path}.")
+            browser_version = get_chrome_version()
+            params = {
+                "response": "redirect",
+                "prodversion": browser_version,
+                "acceptformat": "crx3",
+                # Inferred from Chrome's extension update endpoint format.
+                "x": f"id={extension_id}&uc",
+            }
+            logging.info(f"Downloading CRX for ID: {extension_id} using Chrome update service...")
+            response = requests.get(
+                "https://clients2.google.com/service/update2/crx",
+                params=params,
+                timeout=60,
+                allow_redirects=True,
+            )
+            response.raise_for_status()
+
+            with open(output_path, "wb") as crx_file:
+                crx_file.write(response.content)
+
+            logging.info(f"Saved extension {extension_id} to {output_path}")
+        except requests.RequestException as e:
+            logging.error(f"Failed to download extension {extension_id} from Chrome update service: {e}")
+        except OSError as e:
+            logging.error(f"Failed to save extension {extension_id} to {output_path}: {e}")
     else:
         # Non-Docker: Manual download (unchanged).
         url = f"https://chromewebstore.google.com/detail/{extension_id}"
@@ -754,7 +789,7 @@ def run():
 
     logging.info('Starting the script (run function)...')
 
-    branding = f'''{LogColors.OKBLUE}
+    branding = fr'''{LogColors.OKBLUE}
                 $$$$$$$\                      $$\                               $$\       
                 $$  __$$\                     $$ |                              $$ |      
                 $$ |  $$ | $$$$$$\   $$$$$$$\ $$ |  $$\ $$\  $$\  $$\  $$$$$$\  $$$$$$$\  
