@@ -423,6 +423,8 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
             clearMemory(driver)
             driver.get("https://app.grass.io/dashboard")
             natural_sleep(15*delay_multiplier,variance=3)
+            handle_cookie_banner(driver)
+            natural_sleep(15*delay_multiplier,variance=3)
 
             if driver.current_url == "https://app.grass.io/dashboard":
                 logging.info(f"✅ Already logged in. Skipping login process.")
@@ -477,25 +479,8 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
             button.click()
             natural_sleep(5*delay_multiplier)
             
-            tries = 0 
-            capsolver_active = False
-            while is_recaptcha_present(driver):
-                if tries > 3:
-                    logging.error("Failed to Solve CAPTCHA after multiple attempts")
-                    # Raise an exception if CAPTCHA solving fails multiple times
-                    raise Exception("Failed to Solve CAPTCHA after multiple attempts")
-                logging.info("Captcha found trying to auto solve")
-                if not capsolver_active:
-                    call_capsolver(driver)
-                    capsolver_active = True
-                natural_sleep(60) 
-                tries += 1 
-            
-            call_capsolver(driver,enable_auto=False) 
-            natural_sleep(random.uniform(2,5)) 
-
             use_password_button = WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, "//p[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
+                EC.element_to_be_clickable((By.XPATH, "//button[translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')='USE PASSWORD INSTEAD']"))
             )
             use_password_button.click()
             logging.info("Clicked on Use Password Instead......")
@@ -685,8 +670,8 @@ def runGradientNode(driver, email, password, delay_multiplier=1):
     wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
     logging.info(f"🔑 Entering email...")
-    email_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 
-        'input.ant-input.css-2ronba.ant-input-outlined.rounded-full.h-9.px-4.text-sm[type="text"][placeholder="Enter Email"]')))
+    email_input = wait.until(EC.presence_of_element_located((By.XPATH, 
+        '//input[@placeholder="Enter Email"]')))
     email_input.send_keys(email)
     natural_sleep(2)
 
