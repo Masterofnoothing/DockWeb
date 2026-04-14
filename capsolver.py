@@ -1,7 +1,4 @@
 import requests
-from twocaptcha import TwoCaptcha
-
-solver = TwoCaptcha('your_2captcha_api_key')
 
 
 def create_turnstile_task(api_key:str,site_key,website):
@@ -49,6 +46,14 @@ def get_turnstile_response(task_id,api_key):
         
 def solve_dawn(api_key):
     filename="./static/screenshot.png"
+    try:
+        from twocaptcha import TwoCaptcha
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "twocaptcha is required only for Dawn CAPTCHA solving. "
+            "Install it with `pip install 2captcha-python` or disable the Dawn flow."
+        ) from exc
+
     solver = TwoCaptcha(api_key)
     result = solver.normal(filename)
     return (result)

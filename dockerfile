@@ -16,6 +16,7 @@ RUN apt update && \
         python3-flask \
         python3-requests \
         python3-selenium && \
+    python3 -m pip install --no-cache-dir --break-system-packages 2captcha-python && \
     apt autoremove --purge -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*

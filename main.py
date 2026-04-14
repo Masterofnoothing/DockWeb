@@ -1,6 +1,7 @@
 import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import random
@@ -51,6 +52,31 @@ def get_chrome_version():
 
     logging.warning("Could not detect Chrome/Chromium version. Falling back to 9999.0.0.0 for CRX download.")
     return "9999.0.0.0"
+
+
+def get_chromedriver_path():
+    candidates = [
+        os.getenv("CHROMEDRIVER"),
+        "/usr/bin/chromedriver",
+        "/usr/lib/chromium/chromedriver",
+        "chromedriver",
+    ]
+
+    for candidate in candidates:
+        if not candidate:
+            continue
+        if os.path.isabs(candidate):
+            if os.path.exists(candidate):
+                return candidate
+            continue
+        try:
+            result = subprocess.run([candidate, "--version"], capture_output=True, text=True, check=True)
+            if result.stdout.strip():
+                return candidate
+        except Exception:
+            continue
+
+    raise FileNotFoundError("Could not find a working chromedriver binary.")
 
 def natural_sleep(base, variance=2):
     time.sleep(base + random.uniform(-variance, variance))
@@ -902,7 +928,9 @@ def run():
             id = extensionIds['nodepay']
             chrome_options.add_extension(f"./{id}.crx")
 
-        driver = webdriver.Chrome(options=chrome_options)
+        chromedriver_path = get_chromedriver_path()
+        logging.info(f"Using ChromeDriver binary at {chromedriver_path}")
+        driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options)
 
     else:
         driver = webdriver.Chrome(options=chrome_options)
