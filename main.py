@@ -475,7 +475,8 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
             handle_cookie_banner(driver)
             natural_sleep(15*delay_multiplier,variance=3)
 
-            if driver.current_url == "https://app.grass.io/dashboard":
+            login_element = driver.find_element(By.XPATH,"//button[text()='Sign In']")
+            if not login_element:
                 logging.info(f"✅ Already logged in. Skipping login process.")
                 WebDriverWait(driver, random.randint(10, 50) * delay_multiplier).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
                 
@@ -515,7 +516,7 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
                 break  
             
             logging.info(f"🔄 Redirecting to login page...")
-            driver.get("https://app.grass.io/")
+            driver.get("https://app.grass.io/login")
             natural_sleep(7,3)
             handle_cookie_banner(driver)
             
@@ -548,9 +549,13 @@ def runGrass(driver, email, password, extension_id, delay_multiplier=1):
             logging.info(f"⏳ Log in successful.......")
             logging.info(f"🔧 Accessing extension settings...")
             driver.get(f'chrome-extension://{extension_id}/index.html')
-            WebDriverWait(driver, random.randint(3, 7) * delay_multiplier).until(EC.presence_of_element_located((By.XPATH, "//button")))
-            
+
+            login_element = driver.find_element(By.XPATH,"//button[text()='Sign In']")
+            if login_element:
+                login_element.click()
+                
             logging.info(f"🚀 Activating extension...")
+            natural_sleep(7)
             timeout = 0
             while True:
                 status_elements_after_login = driver.find_elements(By.XPATH, "//p[@class='chakra-text css-uzsxi7'] | //p[contains(text(),'Grass is Connected')] | //p[contains(text(),'Connected')]")
@@ -960,7 +965,7 @@ def run():
     # Block CSS requests
     driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*.css", "*.png", "*.svg"]})
 
-    call_capsolver(driver,enable_auto=False)
+    #call_capsolver(driver,enable_auto=False)
 
     results = {}
 
